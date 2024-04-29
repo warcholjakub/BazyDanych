@@ -1,8 +1,8 @@
 # Bazy danych
 
 **Autorzy:**
-Jakub Skwarczek
-Tymoteusz Szwech
+Jakub Skwarczek,
+Tymoteusz Szwech,
 Jakub Warchoł
 
 # 1. Wymagania i funkcje systemu
