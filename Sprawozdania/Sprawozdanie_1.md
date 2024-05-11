@@ -21,7 +21,7 @@ Lista funkcji jakie użytkownik może wykonywać w systemie.
 
 ### Schemat bazy danych
 
-<img src="../ProjektBazy/schemat.png">
+![Schemat bazy danych](../ProjektBazy/schemat.png)
 
 ### Opis poszczególnych tabel
 
@@ -50,15 +50,15 @@ CREATE TABLE Payments (
 
 Nazwa tabeli: **TripOrders**
 
-- Opis: (opis tabeli, komentarz)
+- Opis: Tabela z zamówieniami wycieczek, zawierająca informacje tj. klient, który złożył zamówienie.
 
 | Nazwa atrybutu    | Typ      | Opis/Uwagi                                       |
 | ----------------- | -------- | ------------------------------------------------ |
-| OrderID           | int      | Identyfikator zamówienia                         |
+| OrderID           | int      | Identyfikator zamówienia wycieczki               |
 | TripID            | int      | Identyfikator wycieczki, która została zamówiona |
 | CustomerID        | int      | Identyfikator klienta składającego zamówienie    |
 | ParticipantsCount | int      | Liczba uczestników zamówionej wycieczki          |
-| OrderDate         | datetime | Data, kiedy zostało wykonane zamówienie          |
+| OrderDate         | datetime | Data, kiedy zostało złożone zamówienie           |
 | Price             | money    | Cena zamówienia                                  |
 | IsCancelled       | bit      | Czy zamówienie jest anulowane                    |
 
@@ -79,15 +79,15 @@ CREATE TABLE TripOrders (
 
 Nazwa tabeli: **Participants**
 
-- Opis: (opis tabeli, komentarz)
+- Opis: Tabela zawierająca uczestników oraz zamówienia, do których są podpięci.
 
-| Nazwa atrybutu | Typ         | Opis/Uwagi                                                  |
-| -------------- | ----------- | ----------------------------------------------------------- |
-| ParticipantID  | int         | Identyfikator uczestnika                                    |
-| OrderID        | int         | Identyfikator zamówienia, do którego wpisany jest uczestnik |
-| FirstName      | varchar(20) | Imię uczestnika                                             |
-| LastName       | varchar(30) | Nazwisko uczestnika                                         |
-| AddDate        | datetime    | Data dodania uczestnika do zamówienia                       |
+| Nazwa atrybutu | Typ         | Opis/Uwagi                                                            |
+| -------------- | ----------- | --------------------------------------------------------------------- |
+| ParticipantID  | int         | Identyfikator uczestnika                                              |
+| OrderID        | int         | Identyfikator zamówienia wycieczki, do którego wpisany jest uczestnik |
+| FirstName      | varchar(20) | Imię uczestnika                                                       |
+| LastName       | varchar(30) | Nazwisko uczestnika                                                   |
+| AddDate        | datetime    | Data dodania uczestnika do zamówienia                                 |
 
 - kod DDL
 
@@ -104,7 +104,7 @@ CREATE TABLE Participants (
 
 Nazwa tabeli: **Customers**
 
-- Opis: (opis tabeli, komentarz)
+- Opis: Tabela z listą klientów oraz ich danymi.
 
 | Nazwa atrybutu | Typ          | Opis/Uwagi                          |
 | -------------- | ------------ | ----------------------------------- |
@@ -130,6 +130,131 @@ CREATE TABLE Customers (
     PostalCode varchar(10)  NOT NULL,
     Phone varchar(15)  NOT NULL,
     CONSTRAINT Customers_pk PRIMARY KEY  (CustomerID)
+);
+```
+
+Nazwa tabeli: **Trips**
+
+- Opis: Tabela zawierająca informacje dotyczące dostępnych do zamówienia wycieczek.
+
+| Nazwa atrybutu       | Typ          | Opis/Uwagi                                      |
+| -------------------- | ------------ | ----------------------------------------------- |
+| TripID               | int          | Identyfikator wycieczki                         |
+| TripName             | varchar(90)  | Nazwa wycieczki                                 |
+| DestinationCity      | varchar(max) | Miasto, do którego jest wycieczka               |
+| DestinationCountry   | varchar(max) | Kraj, do którego jest wycieczka                 |
+| StartDate            | datetime     | Początek wycieczki                              |
+| EndDate              | datetime     | Koniec wycieczki                                |
+| MaxParticipantsCount | smallint     | Maksymalna liczba osób, które mogą uczestniczyć |
+| Price                | money        | Koszt wycieczki                                 |
+
+- kod DDL
+
+```sql
+CREATE TABLE Trips (
+    TripID int  NOT NULL,
+    TripName varchar(90)  NOT NULL,
+    DestinationCity varchar(max)  NOT NULL,
+    DestinationCountry varchar(max)  NOT NULL,
+    StartDate datetime  NOT NULL,
+    EndDate datetime  NOT NULL,
+    MaxParticipantsCount smallint  NOT NULL,
+    Price money  NOT NULL,
+    CONSTRAINT Trips_pk PRIMARY KEY  (TripID)
+);
+```
+
+Nazwa tabeli: **Attractions**
+
+- Opis: Tabela zawierająca listę dostępnych atrakcji dla wycieczek.
+
+| Nazwa atrybutu       | Typ         | Opis/Uwagi                   |
+| -------------------- | ----------- | ---------------------------- |
+| AttractionID         | int         | Identyfikator atrakcji       |
+| TripID               | int         | Identyfikator wycieczki      |
+| AttractionName       | varchar(90) | Nazwa atrakcji               |
+| MaxParticipantsCount | smallint    | Maksymalna ilość uczestników |
+| Price                | money       | Koszt atrakcji               |
+
+- kod DDL
+
+```sql
+CREATE TABLE Attractions (
+    AttractionID int  NOT NULL,
+    TripID int  NOT NULL,
+    AttracionName varchar(90)  NOT NULL,
+    MaxParticipantsCount smallint  NOT NULL,
+    Price money  NOT NULL,
+    CONSTRAINT Attractions_pk PRIMARY KEY  (AttractionID)
+);
+```
+
+Nazwa tabeli: **AttractionOrders**
+
+- Opis: Dodatkowe zamówienia atrakcji podpięte pod zamówienie wycieczki.
+
+| Nazwa atrybutu    | Typ      | Opis/Uwagi                                   |
+| ----------------- | -------- | -------------------------------------------- |
+| AttractionOrderID | int      | Identyfikator zamówienia atrakcji            |
+| OrderID           | int      | Identyfikator zamówienia wycieczki           |
+| AttractionID      | int      | Identyfikator atrakcji                       |
+| OrderDate         | datetime | Data, kiedy zostało złożone zamówienie       |
+| ParticipantsCount | int      | Liczba uczestników (niewiększa niżeli limit) |
+| Price             | money    | Koszt zamówienia                             |
+
+- kod DDL
+
+```sql
+CREATE TABLE AttractionOrders (
+    AttractionOrderID int  NOT NULL,
+    OrderID int  NOT NULL,
+    AttractionID int  NOT NULL,
+    OrderDate datetime  NOT NULL,
+    ParticipantsCount int  NOT NULL,
+    Price money  NOT NULL,
+    CONSTRAINT AttractionOrders_pk PRIMARY KEY  (AttractionOrderID)
+);
+```
+
+Nazwa tabeli: **AttractionParticipants**
+
+- Opis: Tabela zawierająca identyfikatory uczestników powiązane z konkretnymi zamówieniami atrakcji. Powiązani uczestnicy są na nie zapisani.
+
+| Nazwa atrybutu    | Typ | Opis/Uwagi                        |
+| ----------------- | --- | --------------------------------- |
+| AttractionOrderID | int | Identyfikator zamówienia atrakcji |
+| ParticipantID     | int | Identyfikator uczestnika          |
+
+- kod DDL
+
+```sql
+CREATE TABLE AttractionParticipants (
+    AttractionOrderID int  NOT NULL,
+    ParticipantID int  NOT NULL,
+    CONSTRAINT AttractionParticipants_pk PRIMARY KEY  (AttractionOrderID,ParticipantID)
+);
+```
+
+Nazwa tabeli: **Places**
+
+- Opis: Tabela z miejscami, gdzie odbywają się wycieczki.
+
+| Nazwa atrybutu | Typ          | Opis/Uwagi            |
+| -------------- | ------------ | --------------------- |
+| PlaceID        | int          | Identyfikator miejsca |
+| City           | varchar(max) | Nazwa miasta          |
+| Country        | varchar(max) | Nazwa państwa         |
+| PostalCode     | varchar(10)  | Kod pocztowy miejsca  |
+
+- kod DDL
+
+```sql
+CREATE TABLE Places (
+    PlaceID int  NOT NULL,
+    City varchar(max)  NOT NULL,
+    Country varchar(max)  NOT NULL,
+    PostalCode varchar(10)  NOT NULL,
+    CONSTRAINT Places_pk PRIMARY KEY  (PlaceID)
 );
 ```
 
