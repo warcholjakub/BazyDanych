@@ -16,7 +16,7 @@ Lista funkcji jakie użytkownik może wykonywać w systemie.
 5. Rezerwacja usług/atrakcji w ramach jednej wycieczki.
 6. Dodanie informacji na temat płatności.
 7. Rejestracja i modyfikacja danych uczestników wycieczki.
-   
+
 ## 2. Baza danych
 
 ### Schemat bazy danych
@@ -193,14 +193,14 @@ Nazwa tabeli: **AttractionOrders**
 
 - Opis: Dodatkowe zamówienia atrakcji podpięte pod zamówienie wycieczki.
 
-| Nazwa atrybutu    | Typ      | Opis/Uwagi                                   |
-| ----------------- | -------- | -------------------------------------------- |
-| AttractionOrderID | int      | Identyfikator zamówienia atrakcji            |
-| OrderID           | int      | Identyfikator zamówienia wycieczki           |
-| AttractionID      | int      | Identyfikator atrakcji                       |
-| OrderDate         | datetime | Data, kiedy zostało złożone zamówienie       |
-| ParticipantsCount | int      | Liczba uczestników                           |
-| Price             | money    | Koszt zamówienia                             |
+| Nazwa atrybutu    | Typ      | Opis/Uwagi                             |
+| ----------------- | -------- | -------------------------------------- |
+| AttractionOrderID | int      | Identyfikator zamówienia atrakcji      |
+| OrderID           | int      | Identyfikator zamówienia wycieczki     |
+| AttractionID      | int      | Identyfikator atrakcji                 |
+| OrderDate         | datetime | Data, kiedy zostało złożone zamówienie |
+| ParticipantsCount | int      | Liczba uczestników                     |
+| Price             | money    | Koszt zamówienia                       |
 
 - kod DDL
 
@@ -234,7 +234,6 @@ CREATE TABLE AttractionParticipants (
     CONSTRAINT AttractionParticipants_pk PRIMARY KEY  (AttractionOrderID,ParticipantID)
 );
 ```
-
 
 ## 3. Widoki, procedury/funkcje, triggery
 
