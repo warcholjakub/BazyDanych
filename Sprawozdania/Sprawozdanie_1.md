@@ -235,28 +235,6 @@ CREATE TABLE AttractionParticipants (
 );
 ```
 
-Nazwa tabeli: **Places**
-
-- Opis: Tabela z miejscami, gdzie odbywają się wycieczki.
-
-| Nazwa atrybutu | Typ          | Opis/Uwagi            |
-| -------------- | ------------ | --------------------- |
-| PlaceID        | int          | Identyfikator miejsca |
-| City           | varchar(max) | Nazwa miasta          |
-| Country        | varchar(max) | Nazwa państwa         |
-| PostalCode     | varchar(10)  | Kod pocztowy miejsca  |
-
-- kod DDL
-
-```sql
-CREATE TABLE Places (
-    PlaceID int  NOT NULL,
-    City varchar(max)  NOT NULL,
-    Country varchar(max)  NOT NULL,
-    PostalCode varchar(10)  NOT NULL,
-    CONSTRAINT Places_pk PRIMARY KEY  (PlaceID)
-);
-```
 
 ## 3. Widoki, procedury/funkcje, triggery
 
