@@ -112,8 +112,8 @@ Nazwa tabeli: **Customers**
 | CompanyName    | varchar(100) | Nazwa firmy klienta                 |
 | FirstName      | varchar(20)  | Imię klienta                        |
 | LastName       | varchar(30)  | Nazwisko klienta                    |
-| City           | varchar(max) | Miasto, w którym znajduje się firma |
-| Country        | varchar(max) | Kraj, w którym znajduje się firma   |
+| City           | varchar(30)  | Miasto, w którym znajduje się firma |
+| Country        | varchar(30)  | Kraj, w którym znajduje się firma   |
 | PostalCode     | varchar(10)  | Kod pocztowy                        |
 | Phone          | varchar(15)  | Telefon kontaktowy do klienta       |
 
@@ -125,8 +125,8 @@ CREATE TABLE Customers (
     CompanyName varchar(100)  NULL,
     FirstName varchar(20)  NOT NULL,
     LastName varchar(30)  NOT NULL,
-    City varchar(max)  NOT NULL,
-    Country varchar(max)  NOT NULL,
+    City varchar(30)  NOT NULL,
+    Country varchar(30)  NOT NULL,
     PostalCode varchar(10)  NOT NULL,
     Phone varchar(15)  NOT NULL,
     CONSTRAINT Customers_pk PRIMARY KEY  (CustomerID)
@@ -137,16 +137,16 @@ Nazwa tabeli: **Trips**
 
 - Opis: Tabela zawierająca informacje dotyczące dostępnych do zamówienia wycieczek.
 
-| Nazwa atrybutu       | Typ          | Opis/Uwagi                                      |
-| -------------------- | ------------ | ----------------------------------------------- |
-| TripID               | int          | Identyfikator wycieczki                         |
-| TripName             | varchar(90)  | Nazwa wycieczki                                 |
-| DestinationCity      | varchar(max) | Miasto, do którego jest wycieczka               |
-| DestinationCountry   | varchar(max) | Kraj, do którego jest wycieczka                 |
-| StartDate            | datetime     | Początek wycieczki                              |
-| EndDate              | datetime     | Koniec wycieczki                                |
-| MaxParticipantsCount | smallint     | Maksymalna liczba osób, które mogą uczestniczyć |
-| Price                | money        | Koszt wycieczki                                 |
+| Nazwa atrybutu       | Typ         | Opis/Uwagi                                      |
+| -------------------- | ----------- | ----------------------------------------------- |
+| TripID               | int         | Identyfikator wycieczki                         |
+| TripName             | varchar(90) | Nazwa wycieczki                                 |
+| DestinationCity      | varchar(30) | Miasto, do którego jest wycieczka               |
+| DestinationCountry   | varchar(30) | Kraj, do którego jest wycieczka                 |
+| StartDate            | datetime    | Początek wycieczki                              |
+| EndDate              | datetime    | Koniec wycieczki                                |
+| MaxParticipantsCount | smallint    | Maksymalna liczba osób, które mogą uczestniczyć |
+| Price                | money       | Koszt wycieczki                                 |
 
 - kod DDL
 
@@ -154,8 +154,8 @@ Nazwa tabeli: **Trips**
 CREATE TABLE Trips (
     TripID int  NOT NULL,
     TripName varchar(90)  NOT NULL,
-    DestinationCity varchar(max)  NOT NULL,
-    DestinationCountry varchar(max)  NOT NULL,
+    DestinationCity varchar(30)  NOT NULL,
+    DestinationCountry varchar(30)  NOT NULL,
     StartDate datetime  NOT NULL,
     EndDate datetime  NOT NULL,
     MaxParticipantsCount smallint  NOT NULL,
