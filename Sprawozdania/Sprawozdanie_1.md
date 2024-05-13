@@ -15,8 +15,8 @@ Lista funkcji jakie użytkownik może wykonywać w systemie.
 4. Anulowanie rezerwacji.
 5. Rezerwacja usług/atrakcji w ramach jednej wycieczki.
 6. Dodanie informacji na temat płatności.
-7. Rejestracja danych uczestników wycieczki. _(**Pytanie:** Czy można zmieniać dane uczestników przed deadlinem?)_
-
+7. Rejestracja i modyfikacja danych uczestników wycieczki.
+   
 ## 2. Baza danych
 
 ### Schemat bazy danych
@@ -50,7 +50,7 @@ CREATE TABLE Payments (
 
 Nazwa tabeli: **TripOrders**
 
-- Opis: Tabela z zamówieniami wycieczek, zawierająca informacje tj. klient, który złożył zamówienie.
+- Opis: Tabela z zamówieniami wycieczek, zawierająca informacje między innymi na temat klienta, który złożył zamówienie.
 
 | Nazwa atrybutu    | Typ      | Opis/Uwagi                                       |
 | ----------------- | -------- | ------------------------------------------------ |
@@ -84,10 +84,10 @@ Nazwa tabeli: **Participants**
 | Nazwa atrybutu | Typ         | Opis/Uwagi                                                            |
 | -------------- | ----------- | --------------------------------------------------------------------- |
 | ParticipantID  | int         | Identyfikator uczestnika                                              |
-| OrderID        | int         | Identyfikator zamówienia wycieczki, do którego wpisany jest uczestnik |
+| OrderID        | int         | Identyfikator zamówienia wycieczki, z którym powiązany jest uczestnik |
 | FirstName      | varchar(20) | Imię uczestnika                                                       |
 | LastName       | varchar(30) | Nazwisko uczestnika                                                   |
-| AddDate        | datetime    | Data dodania uczestnika do zamówienia                                 |
+| AddDate        | datetime    | Data dodania uczestnika                                               |
 
 - kod DDL
 
@@ -106,16 +106,16 @@ Nazwa tabeli: **Customers**
 
 - Opis: Tabela z listą klientów oraz ich danymi.
 
-| Nazwa atrybutu | Typ          | Opis/Uwagi                          |
-| -------------- | ------------ | ----------------------------------- |
-| CustomerID     | int          | Identyfikator klienta               |
-| CompanyName    | varchar(100) | Nazwa firmy klienta                 |
-| FirstName      | varchar(20)  | Imię klienta                        |
-| LastName       | varchar(30)  | Nazwisko klienta                    |
-| City           | varchar(30)  | Miasto, w którym znajduje się firma |
-| Country        | varchar(30)  | Kraj, w którym znajduje się firma   |
-| PostalCode     | varchar(10)  | Kod pocztowy                        |
-| Phone          | varchar(15)  | Telefon kontaktowy do klienta       |
+| Nazwa atrybutu | Typ          | Opis/Uwagi                             |
+| -------------- | ------------ | -------------------------------------- |
+| CustomerID     | int          | Identyfikator klienta                  |
+| CompanyName    | varchar(100) | Nazwa firmy klienta                    |
+| FirstName      | varchar(20)  | Imię klienta / reprezentanta firmy     |
+| LastName       | varchar(30)  | Nazwisko klienta / reprezentanta firmy |
+| City           | varchar(30)  | Miasto, w którym znajduje się firma    |
+| Country        | varchar(30)  | Kraj, w którym znajduje się firma      |
+| PostalCode     | varchar(10)  | Kod pocztowy                           |
+| Phone          | varchar(15)  | Telefon kontaktowy do klienta          |
 
 - kod DDL
 
@@ -199,7 +199,7 @@ Nazwa tabeli: **AttractionOrders**
 | OrderID           | int      | Identyfikator zamówienia wycieczki           |
 | AttractionID      | int      | Identyfikator atrakcji                       |
 | OrderDate         | datetime | Data, kiedy zostało złożone zamówienie       |
-| ParticipantsCount | int      | Liczba uczestników (niewiększa niżeli limit) |
+| ParticipantsCount | int      | Liczba uczestników                           |
 | Price             | money    | Koszt zamówienia                             |
 
 - kod DDL
@@ -235,28 +235,6 @@ CREATE TABLE AttractionParticipants (
 );
 ```
 
-Nazwa tabeli: **Places**
-
-- Opis: Tabela z miejscami, gdzie odbywają się wycieczki.
-
-| Nazwa atrybutu | Typ          | Opis/Uwagi            |
-| -------------- | ------------ | --------------------- |
-| PlaceID        | int          | Identyfikator miejsca |
-| City           | varchar(max) | Nazwa miasta          |
-| Country        | varchar(max) | Nazwa państwa         |
-| PostalCode     | varchar(10)  | Kod pocztowy miejsca  |
-
-- kod DDL
-
-```sql
-CREATE TABLE Places (
-    PlaceID int  NOT NULL,
-    City varchar(max)  NOT NULL,
-    Country varchar(max)  NOT NULL,
-    PostalCode varchar(10)  NOT NULL,
-    CONSTRAINT Places_pk PRIMARY KEY  (PlaceID)
-);
-```
 
 ## 3. Widoki, procedury/funkcje, triggery
 
