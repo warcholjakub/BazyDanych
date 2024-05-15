@@ -237,4 +237,34 @@ CREATE TABLE AttractionParticipants (
 
 ## 3. Widoki, procedury/funkcje, triggery
 
+### Widoki
+
+Nazwa widoku: **TripParticipantsCount**
+
+Opis widoku: Widok ten wyświetla sumę uczestników, która jest zapisana konkretną wycieczkę. Oprócz tego podaje maksymalną liczbę uczestników na tę wycieczkę.
+
+```sql
+CREATE VIEW TripParticipantsCount
+AS
+SELECT TripName, SUM(ParticipantsCount) SumParticipants, MaxParticipantsCount
+FROM TripOrders
+JOIN Trips ON Trips.TripID = TripOrders.TripID
+GROUP BY TripName, MaxParticipantsCount;
+```
+
+Nazwa widoku: **TotalPrice**
+
+Opis widoku: Widok ten wyświetla sumę kosztów wszystkich zamówionych wycieczek oraz atrakcji dla konkretnego zamówienia. Wyświetla również wszelkie opłaty wykonywane na to zamówienie.
+
+```sql
+CREATE VIEW TotalPrice
+AS
+SELECT o.OrderID, SUM(tro.Price) totalTripPrice, SUM(ao.Price) totalAttractionPrice, SUM(Amount) AS PayedAmount
+FROM Orders o
+JOIN Payments p ON o.OrderID = p.OrderID
+JOIN AttractionOrders ao ON ao.OrderID = o.OrderID
+JOIN TripOrders tro ON tro.OrderID = o.OrderID
+GROUP BY o.OrderID;
+```
+
 ## 4. Inne
