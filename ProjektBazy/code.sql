@@ -1,5 +1,5 @@
 -- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2024-05-11 15:32:35.803
+-- Last modification date: 2024-05-14 10:50:39.117
 
 -- tables
 -- Table: AttractionOrders
@@ -10,6 +10,8 @@ CREATE TABLE AttractionOrders (
     OrderDate datetime  NOT NULL,
     ParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
+    CONSTRAINT PriceCheck CHECK (Price >= 0),
+    CONSTRAINT PCCheck CHECK (ParticipantsCount > 0),
     CONSTRAINT AttractionOrders_pk PRIMARY KEY  (AttractionOrderID)
 );
 
@@ -27,72 +29,93 @@ CREATE TABLE Attractions (
     AttracionName varchar(90)  NOT NULL,
     MaxParticipantsCount smallint  NOT NULL,
     Price money  NOT NULL,
+    CONSTRAINT PriceCheck CHECK (Price >= 0),
     CONSTRAINT Attractions_pk PRIMARY KEY  (AttractionID)
+);
+
+-- Table: Countries
+CREATE TABLE Countries (
+    CountryName varchar(30)  NOT NULL,
+    CONSTRAINT Countries_pk PRIMARY KEY  (CountryName)
 );
 
 -- Table: Customers
 CREATE TABLE Customers (
     CustomerID int  NOT NULL,
     CompanyName varchar(100)  NULL,
-    FistName varchar(20)  NOT NULL,
+    FirstName varchar(20)  NOT NULL,
     LastName varchar(30)  NOT NULL,
-    City varchar(max)  NOT NULL,
-    Country varchar(max)  NOT NULL,
+    City varchar(30)  NOT NULL,
+    Country varchar(30)  NOT NULL,
     PostalCode varchar(10)  NOT NULL,
     Phone varchar(15)  NOT NULL,
+    CONSTRAINT CountryCheck CHECK (Country IN Countries),
     CONSTRAINT Customers_pk PRIMARY KEY  (CustomerID)
+);
+
+-- Table: Orders
+CREATE TABLE Orders (
+    OrderID int  NOT NULL,
+    OrderDate datetime  NOT NULL,
+    CustomerID int  NOT NULL,
+    IsCancelled bit  NOT NULL DEFAULT 0,
+    CONSTRAINT Orders_pk PRIMARY KEY  (OrderID)
 );
 
 -- Table: Participants
 CREATE TABLE Participants (
     ParticipantID int  NOT NULL,
-    OrderID int  NOT NULL,
     FirstName varchar(20)  NOT NULL,
     LastName varchar(30)  NOT NULL,
-    AddDate datetime  NOT NULL,
+    AddDate datetime  NOT NULL DEFAULT GETDATE(),
     CONSTRAINT Participants_pk PRIMARY KEY  (ParticipantID)
 );
 
 -- Table: Payments
 CREATE TABLE Payments (
     PaymentID int  NOT NULL,
+    OrderID int  NOT NULL,
     PaymentDate datetime  NOT NULL,
     Amount money  NOT NULL,
-    OrderID int  NOT NULL,
+    CONSTRAINT AmountCheck CHECK (Amount >= 0),
     CONSTRAINT Payments_pk PRIMARY KEY  (PaymentID)
-);
-
--- Table: Places
-CREATE TABLE Places (
-    PlaceID int  NOT NULL,
-    City varchar(max)  NOT NULL,
-    Country varchar(max)  NOT NULL,
-    PostalCode varchar(10)  NOT NULL,
-    CONSTRAINT Places_pk PRIMARY KEY  (PlaceID)
 );
 
 -- Table: TripOrders
 CREATE TABLE TripOrders (
+    TripOrderID int  NOT NULL,
     OrderID int  NOT NULL,
     TripID int  NOT NULL,
-    CustomerID int  NOT NULL,
-    ParticipantsCount int  NOT NULL,
     OrderDate datetime  NOT NULL,
+    ParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
-    IsCancelled bit  NOT NULL,
-    CONSTRAINT OrderID PRIMARY KEY  (OrderID)
+    CONSTRAINT PriceCheck CHECK (Price >= 0),
+    CONSTRAINT ParticipantCountCheck CHECK (ParticipantsCount > 0),
+    CONSTRAINT OrderID PRIMARY KEY  (TripOrderID)
+);
+
+-- Table: TripParticipants
+CREATE TABLE TripParticipants (
+    TripOrderID int  NOT NULL,
+    ParticipantID int  NOT NULL,
+    CONSTRAINT TripParticipants_pk PRIMARY KEY  (TripOrderID,ParticipantID)
 );
 
 -- Table: Trips
 CREATE TABLE Trips (
     TripID int  NOT NULL,
     TripName varchar(90)  NOT NULL,
-    DestinationCity varchar(max)  NOT NULL,
-    DestinationCountry varchar(max)  NOT NULL,
-    StartDate datetime  NOT NULL,
-    EndDate datetime  NOT NULL,
+    DestinationCity varchar(30)  NOT NULL,
+    DestinationCountry varchar(30)  NOT NULL,
+    StartDate date  NOT NULL,
+    EndDate date  NOT NULL,
     MaxParticipantsCount smallint  NOT NULL,
     Price money  NOT NULL,
+    IsAvailable bit  NOT NULL DEFAULT 0,
+    CONSTRAINT DateCheck CHECK (StartDate < EndDate),
+    CONSTRAINT PriceCheck CHECK (Price >= 0),
+    CONSTRAINT MPCheck CHECK (MaxParticipantsCount > 0),
+    CONSTRAINT CountryCheck CHECK (DestinationCountry IN Countries),
     CONSTRAINT Trips_pk PRIMARY KEY  (TripID)
 );
 
@@ -102,35 +125,45 @@ ALTER TABLE AttractionOrders ADD CONSTRAINT AttractionOrders_Attractions
     FOREIGN KEY (AttractionID)
     REFERENCES Attractions (AttractionID);
 
--- Reference: AttractionOrders_TripOrders (table: AttractionOrders)
-ALTER TABLE AttractionOrders ADD CONSTRAINT AttractionOrders_TripOrders
+-- Reference: AttractionOrders_Orders (table: AttractionOrders)
+ALTER TABLE AttractionOrders ADD CONSTRAINT AttractionOrders_Orders
     FOREIGN KEY (OrderID)
-    REFERENCES TripOrders (OrderID);
+    REFERENCES Orders (OrderID);
 
 -- Reference: Attractions_Trips (table: Attractions)
 ALTER TABLE Attractions ADD CONSTRAINT Attractions_Trips
     FOREIGN KEY (TripID)
     REFERENCES Trips (TripID);
 
--- Reference: Orders_Customers (table: TripOrders)
-ALTER TABLE TripOrders ADD CONSTRAINT Orders_Customers
+-- Reference: Orders_Customers (table: Orders)
+ALTER TABLE Orders ADD CONSTRAINT Orders_Customers
     FOREIGN KEY (CustomerID)
     REFERENCES Customers (CustomerID);
 
--- Reference: Orders_Trips (table: TripOrders)
-ALTER TABLE TripOrders ADD CONSTRAINT Orders_Trips
+-- Reference: Payments_Orders (table: Payments)
+ALTER TABLE Payments ADD CONSTRAINT Payments_Orders
+    FOREIGN KEY (OrderID)
+    REFERENCES Orders (OrderID);
+
+-- Reference: TripOrders_Orders (table: TripOrders)
+ALTER TABLE TripOrders ADD CONSTRAINT TripOrders_Orders
+    FOREIGN KEY (OrderID)
+    REFERENCES Orders (OrderID);
+
+-- Reference: TripOrders_Trips (table: TripOrders)
+ALTER TABLE TripOrders ADD CONSTRAINT TripOrders_Trips
     FOREIGN KEY (TripID)
     REFERENCES Trips (TripID);
 
--- Reference: Participants_Orders (table: Participants)
-ALTER TABLE Participants ADD CONSTRAINT Participants_Orders
-    FOREIGN KEY (OrderID)
-    REFERENCES TripOrders (OrderID);
+-- Reference: TripParticipants_Participants (table: TripParticipants)
+ALTER TABLE TripParticipants ADD CONSTRAINT TripParticipants_Participants
+    FOREIGN KEY (ParticipantID)
+    REFERENCES Participants (ParticipantID);
 
--- Reference: Payments_TripOrders (table: Payments)
-ALTER TABLE Payments ADD CONSTRAINT Payments_TripOrders
-    FOREIGN KEY (OrderID)
-    REFERENCES TripOrders (OrderID);
+-- Reference: TripParticipants_TripOrders (table: TripParticipants)
+ALTER TABLE TripParticipants ADD CONSTRAINT TripParticipants_TripOrders
+    FOREIGN KEY (TripOrderID)
+    REFERENCES TripOrders (TripOrderID);
 
 -- Reference: do_nazwania_AttractionOrders (table: AttractionParticipants)
 ALTER TABLE AttractionParticipants ADD CONSTRAINT do_nazwania_AttractionOrders
