@@ -379,4 +379,6 @@ JOIN TripOrders tro ON tro.OrderID = o.OrderID
 GROUP BY o.OrderID;
 ```
 
+Nazwa widoku: **jakieś inne pomysły**
+
 ## 4. Inne
