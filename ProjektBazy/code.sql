@@ -26,7 +26,7 @@ CREATE TABLE AttractionParticipants (
 CREATE TABLE Attractions (
     AttractionID int  NOT NULL,
     TripID int  NOT NULL,
-    AttracionName varchar(90)  NOT NULL,
+    AttractionName varchar(90)  NOT NULL,
     MaxParticipantsCount smallint  NOT NULL,
     Price money  NOT NULL,
     CONSTRAINT PriceCheck CHECK (Price >= 0),
