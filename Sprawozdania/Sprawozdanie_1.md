@@ -115,7 +115,7 @@ CREATE TABLE Payments (
     OrderID int  NOT NULL,
     PaymentDate datetime  NOT NULL,
     Amount money  NOT NULL,
-    CONSTRAINT AmountCheck CHECK (Amount >= 0),
+    CONSTRAINT Payments_AmountCheck CHECK (Amount >= 0),
     CONSTRAINT Payments_pk PRIMARY KEY  (PaymentID)
 );
 
@@ -147,8 +147,8 @@ CREATE TABLE TripOrders (
     OrderDate datetime  NOT NULL,
     ParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
-    CONSTRAINT ParticipantCountCheck CHECK (ParticipantsCount > 0),
+    CONSTRAINT TripOrders_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT TripOrders_ParticipantCountCheck CHECK (ParticipantsCount > 0),
     CONSTRAINT OrderID PRIMARY KEY  (TripOrderID)
 );
 
@@ -188,16 +188,16 @@ Nazwa tabeli: **Customers**
 
 - Opis: Tabela z listą klientów oraz ich danymi.
 
-| Nazwa atrybutu | Typ          | Opis/Uwagi                                                                                              |
-| -------------- | ------------ | ------------------------------------------------------------------------------------------------------- |
-| CustomerID     | int          | Identyfikator klienta (**PK**)                                                                          |
-| CompanyName    | varchar(100) | Nazwa firmy klienta                                                                                     |
-| FirstName      | varchar(20)  | Imię klienta / reprezentanta firmy                                                                      |
-| LastName       | varchar(30)  | Nazwisko klienta / reprezentanta firmy                                                                  |
-| City           | varchar(30)  | Miasto, w którym znajduje się firma                                                                     |
-| Country        | varchar(30)  | Kraj, w którym znajduje się firma; **Country IN Countries** - państwo znajduje się w tabeli słownikowej |
-| PostalCode     | varchar(10)  | Kod pocztowy                                                                                            |
-| Phone          | varchar(15)  | Telefon kontaktowy do klienta                                                                           |
+| Nazwa atrybutu | Typ          | Opis/Uwagi                             |
+| -------------- | ------------ | -------------------------------------- |
+| CustomerID     | int          | Identyfikator klienta (**PK**)         |
+| CompanyName    | varchar(100) | Nazwa firmy klienta                    |
+| FirstName      | varchar(20)  | Imię klienta / reprezentanta firmy     |
+| LastName       | varchar(30)  | Nazwisko klienta / reprezentanta firmy |
+| City           | varchar(30)  | Miasto, w którym znajduje się firma    |
+| Country        | varchar(30)  | Kraj, w którym znajduje się firma      |
+| PostalCode     | varchar(10)  | Kod pocztowy                           |
+| Phone          | varchar(15)  | Telefon kontaktowy do klienta          |
 
 - kod DDL
 
@@ -211,7 +211,6 @@ CREATE TABLE Customers (
     Country varchar(30)  NOT NULL,
     PostalCode varchar(10)  NOT NULL,
     Phone varchar(15)  NOT NULL,
-    CONSTRAINT CountryCheck CHECK (Country IN Countries),
     CONSTRAINT Customers_pk PRIMARY KEY  (CustomerID)
 );
 ```
@@ -220,17 +219,17 @@ Nazwa tabeli: **Trips**
 
 - Opis: Tabela zawierająca informacje dotyczące dostępnych do zamówienia wycieczek.
 
-| Nazwa atrybutu       | Typ         | Opis/Uwagi                                                                                                   |
-| -------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
-| TripID               | int         | Identyfikator wycieczki (**PK**)                                                                             |
-| TripName             | varchar(90) | Nazwa wycieczki                                                                                              |
-| DestinationCity      | varchar(30) | Miasto, do którego jest wycieczka                                                                            |
-| DestinationCountry   | varchar(30) | Kraj, do którego jest wycieczka; **DestinationCountry IN Countries** - państwo docelowe w tabeli słownikowej |
-| StartDate            | date        | Początek wycieczki; **StartDate < EndDate** - data początku jest przed datą końca                            |
-| EndDate              | date        | Koniec wycieczki                                                                                             |
-| MaxParticipantsCount | smallint    | Maksymalna liczba osób, które mogą uczestniczyć; **MaxParticipantsCount > 0**                                |
-| Price                | money       | Koszt wycieczki; **Price >= 0**                                                                              |
-| IsAvailable          | bit         | Czy wycieczka jest dostępna do zamówienia (0 - nie, 1 - tak).                                                |
+| Nazwa atrybutu       | Typ         | Opis/Uwagi                                                                        |
+| -------------------- | ----------- | --------------------------------------------------------------------------------- |
+| TripID               | int         | Identyfikator wycieczki (**PK**)                                                  |
+| TripName             | varchar(90) | Nazwa wycieczki                                                                   |
+| DestinationCity      | varchar(30) | Miasto, do którego jest wycieczka                                                 |
+| DestinationCountry   | varchar(30) | Kraj, do którego jest wycieczka                                                   |
+| StartDate            | date        | Początek wycieczki; **StartDate < EndDate** - data początku jest przed datą końca |
+| EndDate              | date        | Koniec wycieczki                                                                  |
+| MaxParticipantsCount | smallint    | Maksymalna liczba osób, które mogą uczestniczyć; **MaxParticipantsCount > 0**     |
+| Price                | money       | Koszt wycieczki; **Price >= 0**                                                   |
+| IsAvailable          | bit         | Czy wycieczka jest dostępna do zamówienia (0 - nie, 1 - tak).                     |
 
 - kod DDL
 
@@ -245,10 +244,9 @@ CREATE TABLE Trips (
     MaxParticipantsCount smallint  NOT NULL,
     Price money  NOT NULL,
     IsAvailable bit  NOT NULL DEFAULT 0,
-    CONSTRAINT DateCheck CHECK (StartDate < EndDate),
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
-    CONSTRAINT MPCheck CHECK (MaxParticipantsCount > 0),
-    CONSTRAINT CountryCheck CHECK (DestinationCountry IN Countries),
+    CONSTRAINT Trips_DateCheck CHECK (StartDate < EndDate),
+    CONSTRAINT Trips_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT Trips_MPCheck CHECK (MaxParticipantsCount > 0),
     CONSTRAINT Trips_pk PRIMARY KEY  (TripID)
 );
 ```
@@ -271,11 +269,11 @@ Nazwa tabeli: **Attractions**
 CREATE TABLE Attractions (
     AttractionID int  NOT NULL,
     TripID int  NOT NULL,
-    AttracionName varchar(90)  NOT NULL,
+    AttractionName varchar(90)  NOT NULL,
     MaxParticipantsCount smallint  NOT NULL,
     Price money  NOT NULL,
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
-    CONSTRAINT MPCheck CHECK (MaxParticipantsCount > 0),
+    CONSTRAINT Attractions_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT Attractions_MPCheck CHECK (MaxParticipantsCount > 0),
     CONSTRAINT Attractions_pk PRIMARY KEY  (AttractionID)
 );
 
@@ -307,8 +305,8 @@ CREATE TABLE AttractionOrders (
     OrderDate datetime  NOT NULL,
     ParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
-    CONSTRAINT PCCheck CHECK (ParticipantsCount > 0),
+    CONSTRAINT AttractionOrders_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT AttractionOrders_PCCheck CHECK (ParticipantsCount > 0),
     CONSTRAINT AttractionOrders_pk PRIMARY KEY  (AttractionOrderID)
 );
 

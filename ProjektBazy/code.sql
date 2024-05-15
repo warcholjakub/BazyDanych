@@ -10,8 +10,8 @@ CREATE TABLE AttractionOrders (
     OrderDate datetime  NOT NULL,
     ParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
-    CONSTRAINT PCCheck CHECK (ParticipantsCount > 0),
+    CONSTRAINT AttractionOrders_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT AttractionOrders_PCCheck CHECK (ParticipantsCount > 0),
     CONSTRAINT AttractionOrders_pk PRIMARY KEY  (AttractionOrderID)
 );
 
@@ -29,7 +29,8 @@ CREATE TABLE Attractions (
     AttractionName varchar(90)  NOT NULL,
     MaxParticipantsCount smallint  NOT NULL,
     Price money  NOT NULL,
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
+    CONSTRAINT Attractions_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT Attractions_MPCheck CHECK (MaxParticipantsCount > 0),
     CONSTRAINT Attractions_pk PRIMARY KEY  (AttractionID)
 );
 
@@ -49,7 +50,6 @@ CREATE TABLE Customers (
     Country varchar(30)  NOT NULL,
     PostalCode varchar(10)  NOT NULL,
     Phone varchar(15)  NOT NULL,
-    CONSTRAINT CountryCheck CHECK (Country IN Countries),
     CONSTRAINT Customers_pk PRIMARY KEY  (CustomerID)
 );
 
@@ -77,7 +77,7 @@ CREATE TABLE Payments (
     OrderID int  NOT NULL,
     PaymentDate datetime  NOT NULL,
     Amount money  NOT NULL,
-    CONSTRAINT AmountCheck CHECK (Amount >= 0),
+    CONSTRAINT Payments_AmountCheck CHECK (Amount >= 0),
     CONSTRAINT Payments_pk PRIMARY KEY  (PaymentID)
 );
 
@@ -89,8 +89,8 @@ CREATE TABLE TripOrders (
     OrderDate datetime  NOT NULL,
     ParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
-    CONSTRAINT ParticipantCountCheck CHECK (ParticipantsCount > 0),
+    CONSTRAINT TripOrders_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT TripOrders_ParticipantCountCheck CHECK (ParticipantsCount > 0),
     CONSTRAINT OrderID PRIMARY KEY  (TripOrderID)
 );
 
@@ -112,10 +112,9 @@ CREATE TABLE Trips (
     MaxParticipantsCount smallint  NOT NULL,
     Price money  NOT NULL,
     IsAvailable bit  NOT NULL DEFAULT 0,
-    CONSTRAINT DateCheck CHECK (StartDate < EndDate),
-    CONSTRAINT PriceCheck CHECK (Price >= 0),
-    CONSTRAINT MPCheck CHECK (MaxParticipantsCount > 0),
-    CONSTRAINT CountryCheck CHECK (DestinationCountry IN Countries),
+    CONSTRAINT Trips_DateCheck CHECK (StartDate < EndDate),
+    CONSTRAINT Trips_PriceCheck CHECK (Price >= 0),
+    CONSTRAINT Trips_MPCheck CHECK (MaxParticipantsCount > 0),
     CONSTRAINT Trips_pk PRIMARY KEY  (TripID)
 );
 
