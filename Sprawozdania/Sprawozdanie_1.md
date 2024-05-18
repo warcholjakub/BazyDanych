@@ -46,12 +46,12 @@ Nazwa tabeli: **Orders**
 
 - Opis: Tabela zawierająca najważniejsze informacje dotyczące głównego zamówienia tj. datę oraz identyfikator klienta.
 
-| Nazwa atrybutu | Typ      | Opis/Uwagi                                              |
-| -------------- | -------- | ------------------------------------------------------- |
-| OrderID        | int      | Identyfikator zamówienia (**PK**)                       |
-| OrderDate      | int      | Data złożenia zamówienia                                |
-| CustomerID     | datetime | Identyfikator klienta, który złożył zamówienie (**FK**) |
-| IsCancelled    | money    | Czy zamówienie zostało anulowane (0 - nie, 1 - tak)     |
+| Nazwa atrybutu | Typ      | Opis/Uwagi                                                           |
+| -------------- | -------- | -------------------------------------------------------------------- |
+| OrderID        | int      | Identyfikator zamówienia (**PK**)                                    |
+| OrderDate      | int      | Data złożenia zamówienia                                             |
+| CustomerID     | datetime | Identyfikator klienta, który złożył zamówienie (**FK**)              |
+| IsCancelled    | money    | Czy zamówienie zostało anulowane (0 - nie, 1 - tak); **DEFAULT - 0** |
 
 - kod DDL
 
@@ -165,12 +165,12 @@ Nazwa tabeli: **Participants**
 
 - Opis: Tabela zawierająca uczestników oraz zamówienia, do których są podpięci.
 
-| Nazwa atrybutu | Typ         | Opis/Uwagi                        |
-| -------------- | ----------- | --------------------------------- |
-| ParticipantID  | int         | Identyfikator uczestnika (**PK**) |
-| FirstName      | varchar(20) | Imię uczestnika                   |
-| LastName       | varchar(30) | Nazwisko uczestnika               |
-| AddDate        | datetime    | Data dodania uczestnika           |
+| Nazwa atrybutu | Typ         | Opis/Uwagi                                       |
+| -------------- | ----------- | ------------------------------------------------ |
+| ParticipantID  | int         | Identyfikator uczestnika (**PK**)                |
+| FirstName      | varchar(20) | Imię uczestnika                                  |
+| LastName       | varchar(30) | Nazwisko uczestnika                              |
+| AddDate        | datetime    | Data dodania uczestnika; **DEFAULT - GETDATE()** |
 
 - kod DDL
 
@@ -229,7 +229,7 @@ Nazwa tabeli: **Trips**
 | EndDate              | date        | Koniec wycieczki                                                                  |
 | MaxParticipantsCount | smallint    | Maksymalna liczba osób, które mogą uczestniczyć; **MaxParticipantsCount > 0**     |
 | Price                | money       | Koszt wycieczki; **Price >= 0**                                                   |
-| IsAvailable          | bit         | Czy wycieczka jest dostępna do zamówienia (0 - nie, 1 - tak).                     |
+| IsAvailable          | bit         | Czy wycieczka jest dostępna do zamówienia (0 - nie, 1 - tak); **DEFAULT - 0**     |
 
 - kod DDL
 
@@ -380,5 +380,37 @@ GROUP BY o.OrderID;
 ```
 
 Nazwa widoku: **jakieś inne pomysły**
+
+### Procedury
+
+Nazwa procedury: **ListTripParticipants**
+
+Opis procedury: Wylistowuje dane wszystkich uczestników, którzy są zapisani do konkretnego zamówienia.
+
+```sql
+CREATE PROCEDURE ListTripParticipants @OrderID int
+AS
+SELECT * FROM Participants p
+JOIN TripParticipants tp ON p.ParticipantID = tp.ParticipantID
+JOIN TripOrders tord ON tord.TripOrderID = tp.TripOrderID
+WHERE TripOrders.OrderID = @OrderID
+GO;
+```
+
+Nazwa procedury: **ParticipantAttractions**
+
+Opis procedury: Wylistowuje wszystkie nazwy atrakcji oraz ich cenę, w których uczestniczy uczestnik.
+
+```sql
+CREATE PROCEDURE ParticipantAttractions @ParticipantID int
+AS
+SELECT AttractionName, Attractions.Price
+FROM Participants p
+JOIN AttractionParticipants ap ON ap.ParticipantID = p.ParticipantID
+JOIN AttractionOrders ao ON ao.AttractionOrderID = ap.AttractionOrderID
+JOIN Attraction a ON a.AttractionID = ao.AttractionID
+WHERE ParticipantID = @ParticipantID
+GO;
+```
 
 ## 4. Inne
