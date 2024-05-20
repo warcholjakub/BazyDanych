@@ -369,11 +369,11 @@ Nazwa widoku: **AttractionParticipantsCount**
 Opis widoku: Widok ten wyświetla sumę uczestników, która jest zapisana na konkretną atrakcję. Oprócz tego podaje maksymalną liczbę uczestników na tę atrakcję oraz nazwę wycieczki, do której ta atrakcja jest przypisana.
 
 ```sql
-CREATE VIEW **AttractionParticipantsCount**
+CREATE VIEW AttractionParticipantsCount
 AS
 SELECT TripName, AttractionName, SUM(ParticipantsCount) SumParticipants, Attractions.MaxParticipantsCount
 FROM AttractionOrders
-JOIN Attractions ON Attractions.AttracionID = AttractionOrders.AttractionID
+JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
 JOIN Trips ON Trips.TripID = Attractions.TripID
 GROUP BY TripName, AttractionName, Attractions.MaxParticipantsCount;
 ```
@@ -385,11 +385,11 @@ Opis widoku: Widok ten wyświetla sumę kosztów wszystkich zamówionych wyciecz
 ```sql
 CREATE VIEW TotalPrice
 AS
-SELECT o.OrderID, SUM(tro.Price) totalTripPrice, SUM(ao.Price) totalAttractionPrice, SUM(Amount) AS PayedAmount
+SELECT o.OrderID, ISNULL(SUM(tro.Price), 0) totalTripPrice, ISNULL(SUM(ao.Price), 0) totalAttractionPrice, ISNULL(SUM(Amount), 0) AS PayedAmount
 FROM Orders o
-JOIN Payments p ON o.OrderID = p.OrderID
-JOIN AttractionOrders ao ON ao.OrderID = o.OrderID
-JOIN TripOrders tro ON tro.OrderID = o.OrderID
+LEFT JOIN Payments p ON o.OrderID = p.OrderID
+LEFT JOIN AttractionOrders ao ON ao.OrderID = o.OrderID
+LEFT JOIN TripOrders tro ON tro.OrderID = o.OrderID
 GROUP BY o.OrderID;
 ```
 
@@ -402,7 +402,42 @@ CREATE VIEW SumCustomerOrders
 AS
 SELECT FirstName, Lastname, COUNT(OrderID) AllOrders
 FROM Customers
-JOIN Orders ON Orders.CustomerID = Customers.CustomerID;
+JOIN Orders ON Orders.CustomerID = Customers.CustomerID
+GROUP BY FirstName, Lastname;
+```
+
+Nazwa widoku: **UnpaidOrders**
+
+Opis widoku: Wyświetla numery wszystkich zamówień (oraz nr klienta odpowiedzialnego za nie), które nie zostały jeszcze w pełni opłacone oraz różnicę do zapłacenia.
+
+```sql
+CREATE VIEW UnpaidOrders
+AS
+SELECT * FROM
+(SELECT o.OrderID, ISNULL(SUM(tro.Price), 0) + ISNULL(SUM(ao.Price), 0) - ISNULL(SUM(Amount), 0) totalToPay, FirstName, LastName, Phone
+FROM Orders o
+LEFT JOIN Payments p ON o.OrderID = p.OrderID
+LEFT JOIN AttractionOrders ao ON ao.OrderID = o.OrderID
+LEFT JOIN TripOrders tro ON tro.OrderID = o.OrderID
+LEFT JOIN Customers C on o.CustomerID = C.CustomerID
+GROUP BY o.OrderID, FirstName, LastName, Phone) subq
+WHERE subq.totalToPay > 0;
+```
+
+Nazwa widoku: **CustomerParticipantList**
+
+Opis widoku: Wyświetla listę wszystkich dodanych uczestników wraz z danymi klienta do którego są przypisani.
+
+```sql
+CREATE VIEW CustomerParticipantList
+AS
+SELECT p.FirstName ParticipantFirstName, p.LastName ParticipantLastName,
+       c.FirstName CustomerFirstName, c.LastName CustomerLastName, c.Phone
+FROM Customers c
+JOIN Orders o on c.CustomerID = o.CustomerID
+JOIN TripOrders t on o.OrderID = t.OrderID
+JOIN TripParticipants tp on t.TripOrderID = tp.TripOrderID
+JOIN Participants p on tp.ParticipantID = p.ParticipantID;
 ```
 
 ### Procedury
@@ -435,6 +470,22 @@ JOIN AttractionOrders ao ON ao.AttractionOrderID = ap.AttractionOrderID
 JOIN Attraction a ON a.AttractionID = ao.AttractionID
 WHERE ParticipantID = @ParticipantID
 GO;
+```
+
+Nazwa procedury: **CustomerParticipants**
+
+Opis procedury: Wyświetla wszystkich uczestników podpisanych do klienta o konkretnym ID.
+
+```sql
+CREATE PROCEDURE CustomerParticipants @CustomerID int
+AS
+SELECT p.FirstName ParticipantFirstName, p.LastName ParticipantLastName
+FROM Customers c
+JOIN Orders o on c.CustomerID = o.CustomerID
+JOIN TripOrders t on o.OrderID = t.OrderID
+JOIN TripParticipants tp on t.TripOrderID = tp.TripOrderID
+JOIN Participants p on tp.ParticipantID = p.ParticipantID;
+WHERE c.CustomerID = @CustomerID;
 ```
 
 ## 4. Inne
