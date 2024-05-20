@@ -349,6 +349,29 @@ ALTER TABLE AttractionParticipants ADD CONSTRAINT do_nazwania_Participants
 
 ## 3. Widoki, procedury/funkcje, triggery
 
+### Warunki integralności - triggery
+
+Nazwa triggera: **TripsInsertTrigger**
+
+Opis triggera: Trigger, który zastępuje akcję INSERT na tabeli Trips. Sprawdza on czy kraj docelowy znajduje się w tabeli słownikowej.
+
+```sql
+CREATE TRIGGER TripsInsertTrigger
+    ON Trips
+    INSTEAD OF INSERT
+AS BEGIN
+    IF (SELECT DestinationCountry FROM inserted) IN (SELECT * FROM dbo.Countries)
+    BEGIN
+        INSERT dbo.Trips(TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price)
+            SELECT TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price FROM inserted;
+    END
+    ELSE
+    BEGIN
+        PRINT 'INCORRECT COUNTRY CODE'
+    END
+END;
+```
+
 ### Widoki
 
 Nazwa widoku: **TripParticipantsCount**
@@ -452,8 +475,7 @@ AS
 SELECT * FROM Participants p
 JOIN TripParticipants tp ON p.ParticipantID = tp.ParticipantID
 JOIN TripOrders tord ON tord.TripOrderID = tp.TripOrderID
-WHERE TripOrders.OrderID = @OrderID
-GO;
+WHERE TripOrders.OrderID = @OrderID;
 ```
 
 Nazwa procedury: **ParticipantAttractions**
@@ -463,13 +485,12 @@ Opis procedury: Wylistowuje wszystkie nazwy atrakcji oraz ich cenę, w których 
 ```sql
 CREATE PROCEDURE ParticipantAttractions @ParticipantID int
 AS
-SELECT AttractionName, Attractions.Price
+SELECT AttractionName, a.Price
 FROM Participants p
 JOIN AttractionParticipants ap ON ap.ParticipantID = p.ParticipantID
 JOIN AttractionOrders ao ON ao.AttractionOrderID = ap.AttractionOrderID
-JOIN Attraction a ON a.AttractionID = ao.AttractionID
-WHERE ParticipantID = @ParticipantID
-GO;
+JOIN Attractions a ON a.AttractionID = ao.AttractionID
+WHERE ParticipantID = @ParticipantID;
 ```
 
 Nazwa procedury: **CustomerParticipants**
