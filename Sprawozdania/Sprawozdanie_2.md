@@ -6,9 +6,10 @@ Tymoteusz Szwech,
 Jakub Warchoł
 
 ## 1. Wymagania i funkcje systemu
+
 System wspomaga działalność firmy świadczącej usługi turystyczne. Oferuje on rezerwację różnorodnych wycieczek z określoną datą, limitem miejsc i ceną. Klienci mogą dodatkowo rezerwować usługi i atrakcje związane z daną wycieczką, które również mają swoje limity miejsc i ceny.
 
-Klientami są zarówno osoby prywatne, jak i firmy, które dokonują rezerwacji i płatności za  uczestników wycieczki. Przy rezerwacji klient podaje liczbę miejsc oraz wybiera dodatkowe usługi, a najpóźniej na tydzień przed wyjazdem musi podać imiona i nazwiska uczestników. Brak tych danych lub pełnej wpłaty skutkuje anulowaniem zamówienia.
+Klientami są zarówno osoby prywatne, jak i firmy, które dokonują rezerwacji i płatności za uczestników wycieczki. Przy rezerwacji klient podaje liczbę miejsc oraz wybiera dodatkowe usługi, a najpóźniej na tydzień przed wyjazdem musi podać imiona i nazwiska uczestników. Brak tych danych lub pełnej wpłaty skutkuje anulowaniem zamówienia.
 
 Rezerwacje dodatkowych usług są możliwe tylko wraz z rezerwacją wycieczki. Zmiany w rezerwacji można wprowadzać do tygodnia przed wyjazdem. Po tym terminie zamówienie musi być w pełni opłacone i nie można wprowadzać żadnych zmian. System zapewnia przejrzystość i wygodę obsługi, wspierając efektywne zarządzanie wycieczkami i usługami dodatkowymi.
 
@@ -357,17 +358,17 @@ CREATE TABLE Customers (
 
 Nazwa triggera: **TripsInsertTrigger**
 
-- Opis: Trigger, który zastępuje akcję *INSERT* na tabeli Trips. Sprawdza on czy kraj docelowy znajduje się w tabeli słownikowej.
+- Opis: Trigger, który zastępuje akcję _INSERT_ na tabeli Trips. Sprawdza on czy kraj docelowy znajduje się w tabeli słownikowej.
 
 ```sql
 CREATE TRIGGER TripsInsertTrigger
     ON Trips
     INSTEAD OF INSERT
 AS BEGIN
-    IF (SELECT DestinationCountry FROM Inserted) IN (SELECT * FROM dbo.Countries)
+    IF (SELECT DestinationCountry FROM inserted) IN (SELECT * FROM dbo.Countries)
     BEGIN
         INSERT dbo.Trips(TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price)
-            SELECT TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price FROM Inserted;
+            SELECT TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price FROM inserted;
     END
     ELSE
     BEGIN
