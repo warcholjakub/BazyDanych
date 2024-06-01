@@ -369,6 +369,30 @@ CREATE TABLE Customers (
 
 ### Warunki integralności - triggery
 
+Nazwa triggera: **AttractionOrderCheck**
+
+- Opis: Przy składaniu zamówienia na daną atrakcję, sprawdza czy została wykupiona wycieczka, która ją oferuje.
+
+```sql
+CREATE TRIGGER AttractionOrderCheck
+    ON AttractionOrders
+    AFTER INSERT
+AS
+BEGIN
+    IF NOT EXISTS(SELECT TripOrderID
+              FROM TripOrders
+              WHERE TripOrders.OrderID = (SELECT OrderID
+                                          FROM inserted)
+                AND TripID = (SELECT TripID
+                              FROM Attractions
+                              WHERE Attractions.AttractionID = (SELECT AttractionID
+                                                                FROM inserted)))
+    BEGIN
+        THROW 50001, 'You cannot add an attraction if the related trip has not been purchased.', 1
+    END
+END;
+```
+
 ### Widoki
 
 Nazwa widoku: **TripParticipantsCount**
@@ -725,7 +749,7 @@ Dla *SlotsLeft* równego 40:
 
 Nazwa procedury: **TripsTo**
 
-- Opis: Wylistowuje numer oraz nazwe wycieczek odbywających się w danym kraju.
+- Opis: Wylistowuje numery oraz nazwy wycieczek odbywających się w danym kraju.
 
 ```sql
 CREATE PROCEDURE TripsTo @Country varchar(30)
