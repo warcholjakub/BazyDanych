@@ -27,7 +27,7 @@ Lista funkcji jakie użytkownik może wykonywać w systemie.
 
 ### Schemat bazy danych
 
-![Schemat bazy danych](../ProjektBazy/schemat.png)
+![Schemat bazy danych](../ProjektBazy/final.png)
 
 ### Opis poszczególnych tabel
 
@@ -37,7 +37,7 @@ Nazwa tabeli: **Countries**
 
 | Nazwa atrybutu | Typ         | Opis/Uwagi             |
 | -------------- | ----------- | ---------------------- |
-| CountryName    | varchar(30) | Nazwa państwa (**PK**) |
+| CountryName    | varchar(30) | Nazwa państwa (**PK, FK**) |
 
 - kod DDL
 
@@ -82,6 +82,10 @@ CREATE TABLE Trips (
     CONSTRAINT Trips_MPCheck CHECK (MaxParticipantsCount > 0),
     CONSTRAINT Trips_pk PRIMARY KEY  (TripID)
 );
+
+ALTER TABLE Trips ADD CONSTRAINT Trips_Countries
+    FOREIGN KEY (DestinationCountry)
+    REFERENCES Countries (CountryName);
 ```
 
 Nazwa tabeli: **Attractions**
@@ -307,7 +311,12 @@ Nazwa tabeli: **Participants**
 | ParticipantID  | int         | Identyfikator uczestnika (**PK**)                |
 | FirstName      | varchar(20) | Imię uczestnika                                  |
 | LastName       | varchar(30) | Nazwisko uczestnika                              |
-| AddDate        | datetime    | Data dodania uczestnika; **DEFAULT - GETDATE()** |
+| PassportID     | varchar(40) | Identyfikator paszportu uczesnika                |
+| City           | varchar(30) | Miasto zamieszkania uczestnika                   |
+| Country        | varchar(30) | Kraj, z którego pochodzi uczestnik               |
+| PostalCode     | varchar(10) | Kod pocztowy                                     |
+| Phone          | varchar(15) | Telefon kontaktowy do uczestnika                 |
+
 
 - kod DDL
 
@@ -316,7 +325,11 @@ CREATE TABLE Participants (
     ParticipantID int  NOT NULL,
     FirstName varchar(20)  NOT NULL,
     LastName varchar(30)  NOT NULL,
-    AddDate datetime  NOT NULL DEFAULT GETDATE(),
+    PassportID varchar(40)  NOT NULL,
+    City varchar(30)  NOT NULL,
+    Country varchar(30)  NOT NULL,
+    PostalCode varchar(10)  NOT NULL,
+    Phone varchar(15)  NOT NULL,
     CONSTRAINT Participants_pk PRIMARY KEY  (ParticipantID)
 );
 ```
@@ -355,27 +368,6 @@ CREATE TABLE Customers (
 ## 3. Widoki, procedury/funkcje, triggery
 
 ### Warunki integralności - triggery
-
-Nazwa triggera: **TripsInsertTrigger**
-
-- Opis: Trigger, który zastępuje akcję _INSERT_ na tabeli Trips. Sprawdza on czy kraj docelowy znajduje się w tabeli słownikowej.
-
-```sql
-CREATE TRIGGER TripsInsertTrigger
-    ON Trips
-    INSTEAD OF INSERT
-AS BEGIN
-    IF (SELECT DestinationCountry FROM inserted) IN (SELECT * FROM dbo.Countries)
-    BEGIN
-        INSERT dbo.Trips(TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price)
-            SELECT TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price FROM inserted;
-    END
-    ELSE
-    BEGIN
-        PRINT 'INCORRECT COUNTRY NAME'
-    END
-END;
-```
 
 ### Widoki
 
