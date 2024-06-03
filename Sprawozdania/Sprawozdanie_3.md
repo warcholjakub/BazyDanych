@@ -369,26 +369,25 @@ CREATE TABLE Customers (
 
 ### Warunki integralności - triggery
 
-Nazwa triggera: **AttractionOrderCheck**
+Nazwa triggera: **ParticipantTripAssociationCheck**
 
-- Opis: Przy składaniu zamówienia na daną atrakcję, sprawdza czy została wykupiona wycieczka, która ją oferuje.
+- Opis: Przy dodawaniu uczestnika do atrakcji sprawdza czy dany uczestnik jest już powiązany z wycieczką, do której ta atrakcja jest przypisana.
 
 ```sql
-CREATE TRIGGER AttractionOrderCheck
-    ON AttractionOrders
+CREATE TRIGGER ParticipantTripAssociationCheck
+    ON AttractionParticipants
     AFTER INSERT
 AS
 BEGIN
-    IF NOT EXISTS(SELECT TripOrderID
-              FROM TripOrders
-              WHERE TripOrders.OrderID = (SELECT OrderID
-                                          FROM inserted)
-                AND TripID = (SELECT TripID
-                              FROM Attractions
-                              WHERE Attractions.AttractionID = (SELECT AttractionID
-                                                                FROM inserted)))
+    IF NOT EXISTS(SELECT 1
+        FROM inserted
+        JOIN AttractionOrders ON inserted.AttractionOrderID = AttractionOrders.AttractionOrderID
+        JOIN TripParticipants ON inserted.ParticipantID = TripParticipants.ParticipantID
+        JOIN TripOrders ON TripParticipants.TripOrderID = TripOrders.TripOrderID
+        WHERE TripOrders.OrderID = AttractionOrders.OrderID
+    )
     BEGIN
-        THROW 50001, 'You cannot add an attraction if the related trip has not been purchased.', 1
+        THROW 50001, 'Participant is not associated with the trip for this attraction.', 1
     END
 END;
 ```
