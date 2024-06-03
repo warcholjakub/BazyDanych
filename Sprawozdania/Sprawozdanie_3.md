@@ -27,7 +27,7 @@ Lista funkcji jakie użytkownik może wykonywać w systemie.
 
 ### Schemat bazy danych
 
-![Schemat bazy danych](../ProjektBazy/final.png)
+![Schemat bazy danych](../ProjektBazy/final_final.png)
 
 ### Opis poszczególnych tabel
 
