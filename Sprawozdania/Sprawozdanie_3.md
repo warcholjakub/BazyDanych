@@ -35,8 +35,8 @@ Nazwa tabeli: **Countries**
 
 - Opis: Tabela słownikowa zawierająca nazwy państw.
 
-| Nazwa atrybutu | Typ         | Opis/Uwagi             |
-| -------------- | ----------- | ---------------------- |
+| Nazwa atrybutu | Typ         | Opis/Uwagi                 |
+| -------------- | ----------- | -------------------------- |
 | CountryName    | varchar(30) | Nazwa państwa (**PK, FK**) |
 
 - kod DDL
@@ -150,12 +150,13 @@ Nazwa tabeli: **Payments**
 
 - Opis: Tabela zawierająca informacje dotyczące opłat: daty ich wykonania, kwoty, oraz tego jakiego zamówienia dotyczą.
 
-| Nazwa atrybutu | Typ      | Opis/Uwagi                                             |
-| -------------- | -------- | ------------------------------------------------------ |
-| PaymentID      | int      | Identyfikator płatności (**PK**)                       |
-| OrderID        | int      | Identyfikator zamówienia, które jest opłacane (**FK**) |
-| PaymentDate    | datetime | Data dokonania płatności                               |
-| Amount         | money    | Kwota płatności; **Amount >= 0**                       |
+| Nazwa atrybutu | Typ         | Opis/Uwagi                                                      |
+| -------------- | ----------- | --------------------------------------------------------------- |
+| PaymentID      | int         | Identyfikator płatności (**PK**)                                |
+| OrderID        | int         | Identyfikator zamówienia, które jest opłacane (**FK**)          |
+| PaymentDate    | datetime    | Data dokonania płatności                                        |
+| Amount         | money       | Kwota płatności; **Amount >= 0**                                |
+| PaymentMethod  | varchar(20) | Metoda płatnośc; **PaymentMethod IN ('Cash', 'Card', 'Check')** |
 
 - kod DDL
 
@@ -165,7 +166,9 @@ CREATE TABLE Payments (
     OrderID int  NOT NULL,
     PaymentDate datetime  NOT NULL,
     Amount money  NOT NULL,
+    PaymentMethod varchar(20) NOT NULL,
     CONSTRAINT Payments_AmountCheck CHECK (Amount >= 0),
+    CONSTRAINT Payments_PaymentMethod CHECK (PaymentMethod IN ('Cash', 'Card', 'Check')),
     CONSTRAINT Payments_pk PRIMARY KEY  (PaymentID)
 );
 
@@ -306,17 +309,16 @@ Nazwa tabeli: **Participants**
 
 - Opis: Tabela zawierająca informacje na temat uczestników.
 
-| Nazwa atrybutu | Typ         | Opis/Uwagi                                       |
-| -------------- | ----------- | ------------------------------------------------ |
-| ParticipantID  | int         | Identyfikator uczestnika (**PK**)                |
-| FirstName      | varchar(20) | Imię uczestnika                                  |
-| LastName       | varchar(30) | Nazwisko uczestnika                              |
-| PassportID     | varchar(40) | Identyfikator paszportu uczesnika                |
-| City           | varchar(30) | Miasto zamieszkania uczestnika                   |
-| Country        | varchar(30) | Kraj, z którego pochodzi uczestnik               |
-| PostalCode     | varchar(10) | Kod pocztowy                                     |
-| Phone          | varchar(15) | Telefon kontaktowy do uczestnika                 |
-
+| Nazwa atrybutu | Typ         | Opis/Uwagi                              |
+| -------------- | ----------- | --------------------------------------- |
+| ParticipantID  | int         | Identyfikator uczestnika (**PK**)       |
+| FirstName      | varchar(20) | Imię uczestnika                         |
+| LastName       | varchar(30) | Nazwisko uczestnika                     |
+| PassportID     | varchar(40) | Identyfikator paszportu uczesnika       |
+| City           | varchar(30) | Miasto zamieszkania uczestnika (**FK**) |
+| Country        | varchar(30) | Kraj, z którego pochodzi uczestnik      |
+| PostalCode     | varchar(10) | Kod pocztowy                            |
+| Phone          | varchar(15) | Telefon kontaktowy do uczestnika        |
 
 - kod DDL
 
@@ -332,22 +334,26 @@ CREATE TABLE Participants (
     Phone varchar(15)  NOT NULL,
     CONSTRAINT Participants_pk PRIMARY KEY  (ParticipantID)
 );
+
+ALTER TABLE Participants ADD CONSTRAINT Participants_Countries
+    FOREIGN KEY (Country)
+    REFERENCES Countries (CountryName);
 ```
 
 Nazwa tabeli: **Customers**
 
 - Opis: Tabela z listą klientów oraz ich danymi.
 
-| Nazwa atrybutu | Typ          | Opis/Uwagi                             |
-| -------------- | ------------ | -------------------------------------- |
-| CustomerID     | int          | Identyfikator klienta (**PK**)         |
-| CompanyName    | varchar(100) | Nazwa firmy klienta                    |
-| FirstName      | varchar(20)  | Imię klienta / reprezentanta firmy     |
-| LastName       | varchar(30)  | Nazwisko klienta / reprezentanta firmy |
-| City           | varchar(30)  | Miasto, w którym znajduje się firma    |
-| Country        | varchar(30)  | Kraj, w którym znajduje się firma      |
-| PostalCode     | varchar(10)  | Kod pocztowy                           |
-| Phone          | varchar(15)  | Telefon kontaktowy do klienta          |
+| Nazwa atrybutu | Typ          | Opis/Uwagi                                 |
+| -------------- | ------------ | ------------------------------------------ |
+| CustomerID     | int          | Identyfikator klienta (**PK**)             |
+| CompanyName    | varchar(100) | Nazwa firmy klienta                        |
+| FirstName      | varchar(20)  | Imię klienta / reprezentanta firmy         |
+| LastName       | varchar(30)  | Nazwisko klienta / reprezentanta firmy     |
+| City           | varchar(30)  | Miasto, w którym znajduje się firma        |
+| Country        | varchar(30)  | Kraj, w którym znajduje się firma (**FK**) |
+| PostalCode     | varchar(10)  | Kod pocztowy                               |
+| Phone          | varchar(15)  | Telefon kontaktowy do klienta              |
 
 - kod DDL
 
@@ -363,6 +369,10 @@ CREATE TABLE Customers (
     Phone varchar(15)  NOT NULL,
     CONSTRAINT Customers_pk PRIMARY KEY  (CustomerID)
 );
+
+ALTER TABLE Customers ADD CONSTRAINT Customers_Countries
+    FOREIGN KEY (Country)
+    REFERENCES Countries (CountryName);
 ```
 
 ## 3. Widoki, procedury/funkcje, triggery
@@ -392,6 +402,30 @@ BEGIN
 END;
 ```
 
+Nazwa triggera: **AttractionOrderCheck**
+
+- Opis: Przy składaniu zamówienia na daną atrakcję, sprawdza czy została wykupiona wycieczka, która ją oferuje.
+
+```sql
+CREATE TRIGGER AttractionOrderCheck
+    ON AttractionOrders
+    AFTER INSERT
+AS
+BEGIN
+    IF NOT EXISTS(SELECT TripOrderID
+              FROM TripOrders
+              WHERE TripOrders.OrderID = (SELECT OrderID
+                                          FROM inserted)
+                AND TripID = (SELECT TripID
+                              FROM Attractions
+                              WHERE Attractions.AttractionID = (SELECT AttractionID
+                                                                FROM inserted)))
+    BEGIN
+        THROW 50001, 'You cannot add an attraction if the related trip has not been purchased.', 1
+    END
+END;
+```
+
 ### Widoki
 
 Nazwa widoku: **TripParticipantsCount**
@@ -409,18 +443,16 @@ WHERE IsAvailable = 1
 GROUP BY Trips.TripID, StartDate, MaxParticipantsCount;
 ```
 
-| TripID | TripDate | SumParticipants | MaxParticipantsCount | SlotsLeft |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 2023-10-15 | 9 | 50 | 41 |
-| 2 | 2023-11-05 | 8 | 40 | 32 |
-| 3 | 2024-04-10 | 5 | 60 | 55 |
-| 4 | 2024-05-01 | 7 | 55 | 48 |
-| 5 | 2024-06-15 | 5 | 45 | 40 |
-| 6 | 2024-07-10 | 6 | 50 | 44 |
-| 7 | 2024-08-05 | 6 | 30 | 24 |
-| 8 | 2024-09-10 | 8 | 35 | 27 |
-| 9 | 2024-10-05 | 6 | 40 | 34 |
-| 10 | 2024-11-01 | 7 | 50 | 43 |
+| TripID | TripDate   | SumParticipants | MaxParticipantsCount | SlotsLeft |
+| :----- | :--------- | :-------------- | :------------------- | :-------- |
+| 1      | 2024-06-15 | 2               | 30                   | 28        |
+| 2      | 2024-07-10 | 2               | 25                   | 23        |
+| 3      | 2024-08-05 | 1               | 20                   | 19        |
+| 4      | 2024-09-01 | 1               | 35                   | 34        |
+| 5      | 2024-10-01 | 1               | 40                   | 39        |
+| 6      | 2024-05-20 | 1               | 15                   | 14        |
+| 7      | 2024-11-15 | 1               | 10                   | 9         |
+| 10     | 2024-03-05 | 3               | 25                   | 22        |
 
 Nazwa widoku: **AttractionParticipantsCount**
 
@@ -439,37 +471,11 @@ WHERE IsAvailable = 1
 GROUP BY Trips.TripID, Attractions.AttractionID, Trips.StartDate, Attractions.MaxParticipantsCount;
 ```
 
-| TripID | AttractionID | TripDate | SumParticipants | MaxParticipantsCount | SlotsLeft |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 1 | 2023-10-15 | 7 | 30 | 23 |
-| 1 | 2 | 2023-10-15 | 7 | 40 | 33 |
-| 1 | 3 | 2023-10-15 | 7 | 25 | 18 |
-| 2 | 4 | 2023-11-05 | 10 | 35 | 25 |
-| 2 | 5 | 2023-11-05 | 10 | 40 | 30 |
-| 2 | 6 | 2023-11-05 | 10 | 30 | 20 |
-| 3 | 7 | 2024-04-10 | 7 | 50 | 43 |
-| 3 | 8 | 2024-04-10 | 7 | 45 | 38 |
-| 3 | 9 | 2024-04-10 | 9 | 40 | 31 |
-| 4 | 10 | 2024-05-01 | 11 | 50 | 39 |
-| 4 | 11 | 2024-05-01 | 11 | 55 | 44 |
-| 4 | 12 | 2024-05-01 | 7 | 50 | 43 |
-| 5 | 13 | 2024-06-15 | 4 | 45 | 41 |
-| 5 | 14 | 2024-06-15 | 5 | 40 | 35 |
-| 5 | 15 | 2024-06-15 | 6 | 50 | 44 |
-| 6 | 16 | 2024-07-10 | 3 | 50 | 47 |
-| 6 | 17 | 2024-07-10 | 3 | 45 | 42 |
-| 6 | 18 | 2024-07-10 | 1 | 50 | 49 |
-| 7 | 19 | 2024-08-05 | 2 | 30 | 28 |
-| 7 | 20 | 2024-08-05 | 2 | 25 | 23 |
-| 7 | 21 | 2024-08-05 | 3 | 35 | 32 |
-| 8 | 22 | 2024-09-10 | 3 | 35 | 32 |
-| 8 | 23 | 2024-09-10 | 3 | 30 | 27 |
-| 8 | 24 | 2024-09-10 | 1 | 35 | 34 |
-| 9 | 25 | 2024-10-05 | 1 | 40 | 39 |
-| 9 | 26 | 2024-10-05 | 1 | 35 | 34 |
-| 9 | 27 | 2024-10-05 | 2 | 45 | 43 |
-| 10 | 28 | 2024-11-01 | 2 | 50 | 48 |
-| 10 | 29 | 2024-11-01 | 2 | 45 | 43 |
+| TripID | AttractionID | TripDate   | SumParticipants | MaxParticipantsCount | SlotsLeft |
+| :----- | :----------- | :--------- | :-------------- | :------------------- | :-------- |
+| 2      | 5            | 2024-07-10 | 1               | 25                   | 24        |
+| 5      | 13           | 2024-10-01 | 1               | 40                   | 39        |
+| 6      | 16           | 2024-05-20 | 1               | 15                   | 14        |
 
 Nazwa widoku: **TotalPrice**
 
@@ -491,38 +497,18 @@ SELECT OrderID,
 FROM Orders;
 ```
 
-| OrderID | TripPrice | AttractionPrice | Amount |
-| :--- | :--- | :--- | :--- |
-| 1 | 2000.0000 | 360.0000 | 100.0000 |
-| 2 | 3600.0000 | 300.0000 | 0.0000 |
-| 3 | 1500.0000 | 195.0000 | 1695.0000 |
-| 4 | 5600.0000 | 420.0000 | 0.0000 |
-| 5 | 3200.0000 | 350.0000 | 0.0000 |
-| 6 | 1000.0000 | 180.0000 | 0.0000 |
-| 7 | 4000.0000 | 190.0000 | 0.0000 |
-| 8 | 3300.0000 | 510.0000 | 0.0000 |
-| 9 | 1300.0000 | 185.0000 | 0.0000 |
-| 10 | 2400.0000 | 500.0000 | 0.0000 |
-| 11 | 4800.0000 | 400.0000 | 0.0000 |
-| 12 | 3000.0000 | 190.0000 | 0.0000 |
-| 13 | 5400.0000 | 510.0000 | 0.0000 |
-| 14 | 1400.0000 | 85.0000 | 0.0000 |
-| 15 | 3200.0000 | 300.0000 | 0.0000 |
-| 16 | 2000.0000 | 180.0000 | 0.0000 |
-| 17 | 2000.0000 | 190.0000 | 0.0000 |
-| 18 | 3300.0000 | 510.0000 | 0.0000 |
-| 19 | 1300.0000 | 185.0000 | 0.0000 |
-| 20 | 2400.0000 | 500.0000 | 0.0000 |
-| 21 | 4000.0000 | 720.0000 | 0.0000 |
-| 22 | 5400.0000 | 270.0000 | 0.0000 |
-| 23 | 3000.0000 | 390.0000 | 0.0000 |
-| 24 | 1200.0000 | 105.0000 | 0.0000 |
-| 25 | 2800.0000 | 0.0000 | 0.0000 |
-| 26 | 6000.0000 | 0.0000 | 0.0000 |
-| 27 | 1600.0000 | 0.0000 | 0.0000 |
-| 28 | 2200.0000 | 0.0000 | 0.0000 |
-| 29 | 5200.0000 | 0.0000 | 0.0000 |
-| 30 | 3600.0000 | 0.0000 | 0.0000 |
+| OrderID | OrderDate               | TripPrice | AttractionPrice | Amount   |
+| :------ | :---------------------- | :-------- | :-------------- | :------- |
+| 1       | 2024-05-01 00:00:00.000 | 1000.0000 | 0.0000          | 300.0000 |
+| 2       | 2024-05-02 00:00:00.000 | 900.0000  | 25.0000         | 0.0000   |
+| 3       | 2024-05-03 00:00:00.000 | 600.0000  | 0.0000          | 0.0000   |
+| 4       | 2024-05-04 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
+| 5       | 2024-05-05 00:00:00.000 | 650.0000  | 60.0000         | 0.0000   |
+| 6       | 2024-05-06 00:00:00.000 | 400.0000  | 20.0000         | 0.0000   |
+| 7       | 2024-05-07 00:00:00.000 | 700.0000  | 0.0000          | 0.0000   |
+| 8       | 2024-05-08 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
+| 9       | 2024-05-09 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
+| 10      | 2024-05-10 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
 
 Nazwa widoku: **SumCustomerOrders**
 
@@ -538,17 +524,17 @@ GROUP BY Customers.CustomerID;
 ```
 
 | CustomerID | AllOrders |
-| :--- | :--- |
-| 1 | 4 |
-| 2 | 3 |
-| 3 | 3 |
-| 4 | 3 |
-| 5 | 3 |
-| 6 | 2 |
-| 7 | 3 |
-| 8 | 3 |
-| 9 | 3 |
-| 10 | 3 |
+| :--------- | :-------- |
+| 1          | 1         |
+| 2          | 1         |
+| 3          | 1         |
+| 4          | 1         |
+| 5          | 1         |
+| 6          | 1         |
+| 7          | 1         |
+| 8          | 1         |
+| 9          | 1         |
+| 10         | 1         |
 
 Nazwa widoku: **UnpaidOrders**
 
@@ -557,44 +543,25 @@ Nazwa widoku: **UnpaidOrders**
 ```sql
 CREATE VIEW UnpaidOrders
 AS
-SELECT TotalPrice.OrderID, Orders.CustomerID,
+SELECT TotalPrice.OrderID, Orders.OrderDate, Orders.CustomerID,
        TripPrice + AttractionPrice - Amount AS LeftToPay
 FROM TotalPrice
 JOIN Orders ON Orders.OrderID = TotalPrice.OrderID
 WHERE TripPrice + AttractionPrice - Amount > 0
 ```
 
-| OrderID | CustomerID | LeftToPay |
-| :--- | :--- | :--- |
-| 1 | 1 | 2260.0000 |
-| 2 | 2 | 3900.0000 |
-| 4 | 4 | 6020.0000 |
-| 5 | 5 | 3550.0000 |
-| 6 | 1 | 1180.0000 |
-| 7 | 7 | 4190.0000 |
-| 8 | 8 | 3810.0000 |
-| 9 | 9 | 1485.0000 |
-| 10 | 10 | 2900.0000 |
-| 11 | 2 | 5200.0000 |
-| 12 | 3 | 3190.0000 |
-| 13 | 6 | 5910.0000 |
-| 14 | 4 | 1485.0000 |
-| 15 | 5 | 3500.0000 |
-| 16 | 7 | 2180.0000 |
-| 17 | 1 | 2190.0000 |
-| 18 | 8 | 3810.0000 |
-| 19 | 9 | 1485.0000 |
-| 20 | 10 | 2900.0000 |
-| 21 | 1 | 4720.0000 |
-| 22 | 6 | 5670.0000 |
-| 23 | 3 | 3390.0000 |
-| 24 | 2 | 1305.0000 |
-| 25 | 4 | 2800.0000 |
-| 26 | 7 | 6000.0000 |
-| 27 | 5 | 1600.0000 |
-| 28 | 8 | 2200.0000 |
-| 29 | 9 | 5200.0000 |
-| 30 | 10 | 3600.0000 |
+| OrderID | OrderDate               | CustomerID | LeftToPay |
+| :------ | :---------------------- | :--------- | :-------- |
+| 1       | 2024-05-01 00:00:00.000 | 1          | 700.0000  |
+| 2       | 2024-05-02 00:00:00.000 | 2          | 925.0000  |
+| 3       | 2024-05-03 00:00:00.000 | 3          | 600.0000  |
+| 4       | 2024-05-04 00:00:00.000 | 4          | 550.0000  |
+| 5       | 2024-05-05 00:00:00.000 | 5          | 710.0000  |
+| 6       | 2024-05-06 00:00:00.000 | 6          | 420.0000  |
+| 7       | 2024-05-07 00:00:00.000 | 7          | 700.0000  |
+| 8       | 2024-05-08 00:00:00.000 | 8          | 550.0000  |
+| 9       | 2024-05-09 00:00:00.000 | 9          | 550.0000  |
+| 10      | 2024-05-10 00:00:00.000 | 10         | 550.0000  |
 
 Nazwa widoku: **CustomerParticipantList**
 
@@ -611,75 +578,20 @@ JOIN TripParticipants on TripOrders.TripOrderID = TripParticipants.TripOrderID
 JOIN Participants on TripParticipants.ParticipantID = Participants.ParticipantID;
 ```
 
-| CustomerID | ParticipantID | OrderID | OrderDate |
-| :--- | :--- | :--- | :--- |
-| 1 | 1 | 1 | 2024-04-01 10:15:00.000 |
-| 1 | 2 | 1 | 2024-04-01 10:15:00.000 |
-| 2 | 3 | 2 | 2024-04-02 11:30:00.000 |
-| 2 | 4 | 2 | 2024-04-02 11:30:00.000 |
-| 2 | 5 | 2 | 2024-04-02 11:30:00.000 |
-| 3 | 6 | 3 | 2024-04-03 14:45:00.000 |
-| 4 | 7 | 4 | 2024-04-04 09:00:00.000 |
-| 4 | 8 | 4 | 2024-04-04 09:00:00.000 |
-| 4 | 9 | 4 | 2024-04-04 09:00:00.000 |
-| 4 | 10 | 4 | 2024-04-04 09:00:00.000 |
-| 5 | 11 | 5 | 2024-04-05 13:15:00.000 |
-| 5 | 12 | 5 | 2024-04-05 13:15:00.000 |
-| 1 | 13 | 6 | 2024-04-06 16:00:00.000 |
-| 7 | 14 | 7 | 2024-04-07 08:45:00.000 |
-| 7 | 15 | 7 | 2024-04-07 08:45:00.000 |
-| 8 | 16 | 8 | 2024-04-08 10:30:00.000 |
-| 8 | 17 | 8 | 2024-04-08 10:30:00.000 |
-| 8 | 18 | 8 | 2024-04-08 10:30:00.000 |
-| 9 | 19 | 9 | 2024-04-09 12:00:00.000 |
-| 10 | 20 | 10 | 2024-04-10 15:45:00.000 |
-| 10 | 21 | 10 | 2024-04-10 15:45:00.000 |
-| 2 | 22 | 11 | 2024-04-11 09:30:00.000 |
-| 2 | 23 | 11 | 2024-04-11 09:30:00.000 |
-| 2 | 24 | 11 | 2024-04-11 09:30:00.000 |
-| 2 | 25 | 11 | 2024-04-11 09:30:00.000 |
-| 3 | 26 | 12 | 2024-04-12 14:00:00.000 |
-| 3 | 27 | 12 | 2024-04-12 14:00:00.000 |
-| 6 | 28 | 13 | 2024-04-13 11:15:00.000 |
-| 6 | 29 | 13 | 2024-04-13 11:15:00.000 |
-| 6 | 30 | 13 | 2024-04-13 11:15:00.000 |
-| 4 | 1 | 14 | 2024-04-14 13:45:00.000 |
-| 5 | 2 | 15 | 2024-04-15 08:30:00.000 |
-| 5 | 3 | 15 | 2024-04-15 08:30:00.000 |
-| 7 | 4 | 16 | 2024-04-16 10:00:00.000 |
-| 1 | 5 | 17 | 2024-04-17 12:45:00.000 |
-| 1 | 6 | 17 | 2024-04-17 12:45:00.000 |
-| 8 | 7 | 18 | 2024-04-18 14:30:00.000 |
-| 8 | 8 | 18 | 2024-04-18 14:30:00.000 |
-| 8 | 9 | 18 | 2024-04-18 14:30:00.000 |
-| 9 | 10 | 19 | 2024-04-19 09:15:00.000 |
-| 10 | 11 | 20 | 2024-04-20 11:00:00.000 |
-| 10 | 12 | 20 | 2024-04-20 11:00:00.000 |
-| 1 | 13 | 21 | 2024-04-21 10:45:00.000 |
-| 1 | 14 | 21 | 2024-04-21 10:45:00.000 |
-| 1 | 15 | 21 | 2024-04-21 10:45:00.000 |
-| 1 | 16 | 21 | 2024-04-21 10:45:00.000 |
-| 6 | 17 | 22 | 2024-04-22 12:15:00.000 |
-| 6 | 18 | 22 | 2024-04-22 12:15:00.000 |
-| 6 | 19 | 22 | 2024-04-22 12:15:00.000 |
-| 3 | 20 | 23 | 2024-04-23 14:45:00.000 |
-| 3 | 21 | 23 | 2024-04-23 14:45:00.000 |
-| 2 | 22 | 24 | 2024-04-24 09:30:00.000 |
-| 4 | 23 | 25 | 2024-04-25 11:00:00.000 |
-| 4 | 24 | 25 | 2024-04-25 11:00:00.000 |
-| 7 | 25 | 26 | 2024-04-26 13:30:00.000 |
-| 7 | 26 | 26 | 2024-04-26 13:30:00.000 |
-| 7 | 27 | 26 | 2024-04-26 13:30:00.000 |
-| 5 | 28 | 27 | 2024-04-27 15:00:00.000 |
-| 8 | 29 | 28 | 2024-04-28 16:30:00.000 |
-| 8 | 30 | 28 | 2024-04-28 16:30:00.000 |
-| 9 | 1 | 29 | 2024-04-29 09:45:00.000 |
-| 9 | 2 | 29 | 2024-04-29 09:45:00.000 |
-| 9 | 3 | 29 | 2024-04-29 09:45:00.000 |
-| 9 | 4 | 29 | 2024-04-29 09:45:00.000 |
-| 10 | 5 | 30 | 2024-04-30 11:15:00.000 |
-| 10 | 6 | 30 | 2024-04-30 11:15:00.000 |
-| 10 | 7 | 30 | 2024-04-30 11:15:00.000 |
+| CustomerID | ParticipantID | OrderID | OrderDate               |
+| :--------- | :------------ | :------ | :---------------------- |
+| 1          | 1             | 1       | 2024-05-01 00:00:00.000 |
+| 1          | 2             | 1       | 2024-05-01 00:00:00.000 |
+| 2          | 3             | 2       | 2024-05-02 00:00:00.000 |
+| 2          | 4             | 2       | 2024-05-02 00:00:00.000 |
+| 3          | 5             | 3       | 2024-05-03 00:00:00.000 |
+| 4          | 6             | 4       | 2024-05-04 00:00:00.000 |
+| 5          | 7             | 5       | 2024-05-05 00:00:00.000 |
+| 6          | 8             | 6       | 2024-05-06 00:00:00.000 |
+| 7          | 9             | 7       | 2024-05-07 00:00:00.000 |
+| 8          | 10            | 8       | 2024-05-08 00:00:00.000 |
+| 9          | 11            | 9       | 2024-05-09 00:00:00.000 |
+| 10         | 12            | 10      | 2024-05-10 00:00:00.000 |
 
 ### Procedury
 
@@ -695,14 +607,11 @@ FROM UnpaidOrders
 WHERE CustomerID = @CustomerID
 ```
 
-Dla *CustomerID* równego 1:
+Dla _CustomerID_ równego 1:
 
 | OrderID | LeftToPay |
-| :--- | :--- |
-| 1 | 2260.0000 |
-| 6 | 1180.0000 |
-| 17 | 2190.0000 |
-| 21 | 4720.0000 |
+| :------ | :-------- |
+| 1       | 700.0000  |
 
 Nazwa procedury: **ListTripParticipants**
 
@@ -716,12 +625,12 @@ FROM CustomerParticipantList
 WHERE OrderID = @OrderID;
 ```
 
-Dla *OrderID* równego 1:
+Dla _OrderID_ równego 1:
 
 | OrderID | ParticipantID |
-| :--- | :--- |
-| 1 | 1 |
-| 1 | 2 |
+| :------ | :------------ |
+| 1       | 1             |
+| 1       | 2             |
 
 Nazwa procedury: **TripsWithXSlotsLeft**
 
@@ -730,21 +639,22 @@ Nazwa procedury: **TripsWithXSlotsLeft**
 ```sql
 CREATE PROCEDURE TripsWithXSlotsLeft @SlotsLeft int
 AS
-SELECT TripID, TripDate
+SELECT TripID, TripDate, SlotsLeft
 FROM TripParticipantsCount
 WHERE SlotsLeft >= @SlotsLeft
 ```
 
-Dla *SlotsLeft* równego 40:
+Dla _SlotsLeft_ równego 10:
 
-| TripID | TripDate |
-| :--- | :--- |
-| 1 | 2023-10-15 |
-| 3 | 2024-04-10 |
-| 4 | 2024-05-01 |
-| 5 | 2024-06-15 |
-| 6 | 2024-07-10 |
-| 10 | 2024-11-01 |
+| TripID | TripDate   | SlotsLeft |
+| :----- | :--------- | :-------- |
+| 1      | 2024-06-15 | 28        |
+| 2      | 2024-07-10 | 23        |
+| 3      | 2024-08-05 | 19        |
+| 4      | 2024-09-01 | 34        |
+| 5      | 2024-10-01 | 39        |
+| 6      | 2024-05-20 | 14        |
+| 10     | 2024-03-05 | 22        |
 
 Nazwa procedury: **TripsTo**
 
@@ -753,16 +663,65 @@ Nazwa procedury: **TripsTo**
 ```sql
 CREATE PROCEDURE TripsTo @Country varchar(30)
 AS
-SELECT TripID, TripName
+SELECT TripID, TripName, StartDate, EndDate
 FROM Trips
 WHERE DestinationCountry = @Country;
 ```
 
-Dla *Country* równego 'Poland':
+Dla _Country_ równego 'Poland':
 
-| TripID | TripName |
-| :--- | :--- |
-| 1 | Malowniczy Kraków |
+| TripID | TripName                    | StartDate  | EndDate    |
+| :----- | :-------------------------- | :--------- | :--------- |
+| 9      | Krakow Cultural Exploration | 2024-04-10 | 2024-04-15 |
+
+Nazwa procedury: **BuyTrip**
+
+- Opis: Umożliwia zakupienie wybranej wycieczki dla podanej liczby osób. Cena zostaje automatycznie wyliczana.
+
+```sql
+CREATE PROCEDURE BuyTrip @OrderID int, @TripID int, @ParticipantsCount int
+AS
+BEGIN
+    IF ((SELECT SlotsLeft FROM TripParticipantsCount
+        WHERE TripID = @TripID) < @ParticipantsCount)
+        OR
+        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = @TripID)) < GETDATE())
+        OR
+        ((SELECT IsAvailable FROM Trips WHERE TripID = @TripID) <> 1)
+        OR
+        ((SELECT IsCancelled FROM Orders WHERE OrderID = @OrderID) <> 0)
+    BEGIN
+        THROW 50001, 'You cannot buy this trip.', 1
+    END
+    INSERT INTO TripOrders(TripOrderID, OrderID, TripID, OrderDate, ParticipantsCount, Price)
+    VALUES
+        ((SELECT MAX(TripOrderID) + 1 FROM TripOrders), @OrderID, @TripID, GETDATE(), @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
+END;
+```
+
+Nazwa procedury: **BuyAttraction**
+
+- Opis: Umożliwia zakupienie wybranej atrakcji dla podanej liczby osób. Cena zostaje automatycznie wyliczana.
+
+```sql
+CREATE PROCEDURE BuyAttraction @OrderID int, @AttractionID int, @ParticipantsCount int
+AS
+BEGIN
+    IF ((SELECT SlotsLeft FROM AttractionParticipantsCount
+        WHERE AttractionID = @AttractionID) < @ParticipantsCount)
+        OR
+        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID))) < GETDATE())
+        OR
+        ((SELECT IsAvailable FROM Trips WHERE TripID = (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID)) <> 1)
+        OR
+        ((SELECT IsCancelled FROM Orders WHERE OrderID = @OrderID) <> 0)
+    BEGIN
+        THROW 50001, 'You cannot buy this attraction.', 1
+    END
+    INSERT INTO TripOrders(TripOrderID, OrderID, TripID, OrderDate, ParticipantsCount, Price)
+    VALUES
+        ((SELECT MAX(AttractionOrderID) + 1 FROM AttractionOrders), @OrderID, @AttractionID, GETDATE(), @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Attractions WHERE AttractionID = @AttractionID) as money))
+END;
+```
 
 ## 4. Inne
-
