@@ -386,7 +386,7 @@ Nazwa triggera: **ParticipantTripAssociationCheck**
 ```sql
 CREATE TRIGGER ParticipantTripAssociationCheck
     ON AttractionParticipants
-    AFTER INSERT
+    AFTER INSERT, UPDATE
 AS
 BEGIN
     IF NOT EXISTS(SELECT 1
@@ -409,7 +409,7 @@ Nazwa triggera: **AttractionOrderCheck**
 ```sql
 CREATE TRIGGER AttractionOrderCheck
     ON AttractionOrders
-    AFTER INSERT
+    AFTER INSERT, UPDATE
 AS
 BEGIN
     IF NOT EXISTS(SELECT TripOrderID
