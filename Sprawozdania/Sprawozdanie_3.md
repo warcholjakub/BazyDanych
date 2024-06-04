@@ -435,10 +435,10 @@ Nazwa widoku: **TripParticipantsCount**
 ```sql
 CREATE VIEW TripParticipantsCount
 AS
-SELECT Trips.TripID, StartDate AS TripDate, SUM(ParticipantsCount) AS SumParticipants,
-       MaxParticipantsCount, MaxParticipantsCount - SUM(ParticipantsCount) as SlotsLeft
+SELECT Trips.TripID, StartDate AS TripDate, ISNULL(SUM(ParticipantsCount), 0) AS SumParticipants,
+       MaxParticipantsCount, MaxParticipantsCount - ISNULL(SUM(ParticipantsCount), 0) as SlotsLeft
 FROM TripOrders
-JOIN Trips ON Trips.TripID = TripOrders.TripID
+RIGHT JOIN Trips ON Trips.TripID = TripOrders.TripID
 WHERE IsAvailable = 1
 GROUP BY Trips.TripID, StartDate, MaxParticipantsCount;
 ```
@@ -462,10 +462,10 @@ Nazwa widoku: **AttractionParticipantsCount**
 CREATE VIEW AttractionParticipantsCount
 AS
 SELECT Trips.TripID, Attractions.AttractionID, Trips.StartDate AS TripDate,
-       SUM(ParticipantsCount) AS SumParticipants, Attractions.MaxParticipantsCount,
-       Attractions.MaxParticipantsCount - SUM(ParticipantsCount) as SlotsLeft
+       ISNULL(SUM(ParticipantsCount), 0) AS SumParticipants, Attractions.MaxParticipantsCount,
+       Attractions.MaxParticipantsCount - ISNULL(SUM(ParticipantsCount), 0) as SlotsLeft
 FROM AttractionOrders
-JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
+RIGHT JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
 JOIN Trips ON Trips.TripID = Attractions.TripID
 WHERE IsAvailable = 1
 GROUP BY Trips.TripID, Attractions.AttractionID, Trips.StartDate, Attractions.MaxParticipantsCount;
