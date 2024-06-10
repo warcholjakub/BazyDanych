@@ -869,13 +869,3 @@ CREATE ROLE DefaultUser
 GRANT SELECT ON dbo.Trips TO DefaultUser
 GRANT SELECT ON dbo.Attractions TO DefaultUser
 ```
-
-Nazwa roli: **Customer**
-
-- Opis: Rola nadawana klientom, którzy są zapisani w bazie klientów.
-
-```sql
-CREATE ROLE Customer
-
-??
-```
