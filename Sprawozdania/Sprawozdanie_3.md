@@ -764,7 +764,8 @@ BEGIN
     IF (((SELECT COUNT(*) AS cnt FROM CustomerParticipantList WHERE TripOrderID = @TripOrderID)
         >= (SELECT ParticipantsCount FROM TripOrders WHERE TripOrderID = @TripOrderID))
         OR
-        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM TripOrders WHERE TripOrderID = @TripOrderID))) < GETDATE())
+        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM TripOrders WHERE TripOrderID = @TripOrderID)))
+        < GETDATE())
         OR
         (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
     )
