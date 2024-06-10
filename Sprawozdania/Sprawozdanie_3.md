@@ -798,7 +798,7 @@ BEGIN
         (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
     )
     BEGIN
-        THROW 50001, 'You cannot associate the participant with this trip order.', 1
+        THROW 50001, 'You cannot associate the participant with this attraction order.', 1
     END
     INSERT INTO AttractionParticipants(AttractionOrderID, ParticipantID)
     VALUES
