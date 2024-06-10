@@ -708,7 +708,7 @@ Nazwa procedury: **BuyTrip**
 - Opis: Umożliwia zakupienie wybranej wycieczki dla podanej liczby osób. Cena zostaje automatycznie wyliczana.
 
 ```sql
-CREATE PROCEDURE BuyTrip @OrderID int, @TripID int, @ParticipantsCount int
+CREATE PROCEDURE BuyTrip @OrderID int, @TripID int, @ParticipantsCount int, @CustomerID int
 AS
 BEGIN
     IF ((SELECT SlotsLeft FROM TripParticipantsCount
@@ -722,9 +722,15 @@ BEGIN
     BEGIN
         THROW 50001, 'You cannot buy this trip.', 1
     END
+    IF (@OrderID NOT IN (SELECT OrderID FROM Orders))
+        INSERT INTO Orders(OrderID, OrderDate, CustomerID, IsCancelled)
+        VALUES
+            ((SELECT MAX(OrderID) + 1 FROM Orders), GETDATE(), @CustomerID)
+
     INSERT INTO TripOrders(TripOrderID, OrderID, TripID, OrderDate, ParticipantsCount, Price)
     VALUES
-        ((SELECT MAX(TripOrderID) + 1 FROM TripOrders), @OrderID, @TripID, GETDATE(), @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
+        ((SELECT MAX(TripOrderID) + 1 FROM TripOrders), (SELECT MAX(OrderID) FROM Orders), @TripID, GETDATE(),
+        @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
 END;
 ```
 
@@ -747,7 +753,7 @@ BEGIN
     BEGIN
         THROW 50001, 'You cannot buy this attraction.', 1
     END
-    INSERT INTO TripOrders(TripOrderID, OrderID, TripID, OrderDate, ParticipantsCount, Price)
+    INSERT INTO AttractionOrders(AttractionOrderID, OrderID, AttractionID, OrderDate, ParticipantsCount, Price)
     VALUES
         ((SELECT MAX(AttractionOrderID) + 1 FROM AttractionOrders), @OrderID, @AttractionID, GETDATE(), @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Attractions WHERE AttractionID = @AttractionID) as money))
 END;
