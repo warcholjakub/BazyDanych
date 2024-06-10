@@ -753,7 +753,7 @@ BEGIN
     BEGIN
         THROW 50001, 'You cannot buy this attraction.', 1
     END
-    INSERT INTO TripOrders(TripOrderID, OrderID, TripID, OrderDate, ParticipantsCount, Price)
+    INSERT INTO AttractionOrders(AttractionOrderID, OrderID, AttractionID, OrderDate, ParticipantsCount, Price)
     VALUES
         ((SELECT MAX(AttractionOrderID) + 1 FROM AttractionOrders), @OrderID, @AttractionID, GETDATE(), @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Attractions WHERE AttractionID = @AttractionID) as money))
 END;
