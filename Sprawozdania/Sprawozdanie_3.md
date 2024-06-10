@@ -745,7 +745,8 @@ BEGIN
     IF ((SELECT SlotsLeft FROM AttractionParticipantsCount
         WHERE AttractionID = @AttractionID) < @ParticipantsCount)
         OR
-        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID))) < GETDATE())
+        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID =
+        (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID))) < GETDATE())
         OR
         ((SELECT IsAvailable FROM Trips WHERE TripID = (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID)) <> 1)
         OR
@@ -755,7 +756,8 @@ BEGIN
     END
     INSERT INTO AttractionOrders(AttractionOrderID, OrderID, AttractionID, OrderDate, ParticipantsCount, Price)
     VALUES
-        ((SELECT MAX(AttractionOrderID) + 1 FROM AttractionOrders), @OrderID, @AttractionID, GETDATE(), @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Attractions WHERE AttractionID = @AttractionID) as money))
+        ((SELECT MAX(AttractionOrderID) + 1 FROM AttractionOrders), @OrderID, @AttractionID, GETDATE(), @ParticipantsCount,
+        CAST((SELECT Price * @ParticipantsCount FROM Attractions WHERE AttractionID = @AttractionID) as money))
 END;
 ```
 
