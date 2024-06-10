@@ -725,7 +725,7 @@ BEGIN
     IF (@OrderID NOT IN (SELECT OrderID FROM Orders))
         INSERT INTO Orders(OrderID, OrderDate, CustomerID, IsCancelled)
         VALUES
-            ((SELECT MAX(OrderID) + 1 FROM Orders), GETDATE(), @CustomerID)
+            ((SELECT MAX(OrderID) + 1 FROM Orders), GETDATE(), @CustomerID, 0)
 
     INSERT INTO TripOrders(TripOrderID, OrderID, TripID, OrderDate, ParticipantsCount, Price)
     VALUES
