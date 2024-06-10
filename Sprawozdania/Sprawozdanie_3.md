@@ -758,7 +758,7 @@ Nazwa procedury: **AssociateParticipantWithTrip**
 - Opis: Umożliwia powiązanie uczestnika z konkretną zamówioną wycieczką.
 
 ```sql
-CREATE PROCEDURE AssociateParticipantWithTrip @PassportID varchar(40), @TripOrderID int
+CREATE PROCEDURE AssociateParticipantWithTrip @ParticipantID int, @TripOrderID int
 AS
 BEGIN
     IF (((SELECT COUNT(*) AS cnt FROM CustomerParticipantList WHERE TripOrderID = @TripOrderID)
@@ -766,14 +766,14 @@ BEGIN
         OR
         (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM TripOrders WHERE TripOrderID = @TripOrderID))) < GETDATE())
         OR
-        (@PassportID NOT IN (SELECT PassportID FROM Participants))
+        (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
     )
     BEGIN
         THROW 50001, 'You cannot associate the participant with this trip order.', 1
     END
     INSERT INTO TripParticipants(TripOrderID, ParticipantID)
     VALUES
-        (@TripOrderID, (SELECT ParticipantID FROM Participants WHERE PassportID = @PassportID))
+        (@TripOrderID, @ParticipantID)
 END;
 ```
 
@@ -782,7 +782,7 @@ Nazwa procedury: **AssociateParticipantWithAttraction**
 - Opis: Umożliwia powiązanie uczestnika z konkretną zamówioną atrakcją.
 
 ```sql
-CREATE PROCEDURE AssociateParticipantWithAttraction @PassportID varchar(40), @AttractionOrderID int
+CREATE PROCEDURE AssociateParticipantWithAttraction @ParticipantID int, @AttractionOrderID int
 AS
 BEGIN
     IF (((SELECT COUNT(*) AS cnt
@@ -795,14 +795,14 @@ BEGIN
         (SELECT TripID FROM AttractionOrders JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
         WHERE AttractionOrderID = @AttractionOrderID))) < GETDATE()))
         OR
-        (@PassportID NOT IN (SELECT PassportID FROM Participants))
+        (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
     )
     BEGIN
         THROW 50001, 'You cannot associate the participant with this trip order.', 1
     END
     INSERT INTO AttractionParticipants(AttractionOrderID, ParticipantID)
     VALUES
-        (@AttractionOrderID, (SELECT ParticipantID FROM Participants WHERE PassportID = @PassportID))
+        (@AttractionOrderID, @ParticipantID)
 END;
 ```
 
