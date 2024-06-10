@@ -377,55 +377,6 @@ ALTER TABLE Customers ADD CONSTRAINT Customers_Countries
 
 ## 3. Widoki, procedury/funkcje, triggery
 
-### Warunki integralności - triggery
-
-Nazwa triggera: **ParticipantTripAssociationCheck**
-
-- Opis: Przy dodawaniu uczestnika do atrakcji sprawdza czy dany uczestnik jest już powiązany z wycieczką, do której ta atrakcja jest przypisana.
-
-```sql
-CREATE TRIGGER ParticipantTripAssociationCheck
-    ON AttractionParticipants
-    AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF NOT EXISTS(SELECT 1
-        FROM inserted
-        JOIN AttractionOrders ON inserted.AttractionOrderID = AttractionOrders.AttractionOrderID
-        JOIN TripParticipants ON inserted.ParticipantID = TripParticipants.ParticipantID
-        JOIN TripOrders ON TripParticipants.TripOrderID = TripOrders.TripOrderID
-        WHERE TripOrders.OrderID = AttractionOrders.OrderID
-    )
-    BEGIN
-        THROW 50001, 'Participant is not associated with the trip for this attraction.', 1
-    END
-END;
-```
-
-Nazwa triggera: **AttractionOrderCheck**
-
-- Opis: Przy składaniu zamówienia na daną atrakcję, sprawdza czy została wykupiona wycieczka, która ją oferuje.
-
-```sql
-CREATE TRIGGER AttractionOrderCheck
-    ON AttractionOrders
-    AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF NOT EXISTS(SELECT TripOrderID
-              FROM TripOrders
-              WHERE TripOrders.OrderID = (SELECT OrderID
-                                          FROM inserted)
-                AND TripID = (SELECT TripID
-                              FROM Attractions
-                              WHERE Attractions.AttractionID = (SELECT AttractionID
-                                                                FROM inserted)))
-    BEGIN
-        THROW 50001, 'You cannot add an attraction if the related trip has not been purchased.', 1
-    END
-END;
-```
-
 ### Widoki
 
 Nazwa widoku: **TripParticipantsCount**
@@ -445,14 +396,16 @@ GROUP BY Trips.TripID, StartDate, MaxParticipantsCount;
 
 | TripID | TripDate   | SumParticipants | MaxParticipantsCount | SlotsLeft |
 | :----- | :--------- | :-------------- | :------------------- | :-------- |
-| 1      | 2024-06-15 | 2               | 30                   | 28        |
+| 1      | 2024-06-15 | 7               | 30                   | 23        |
 | 2      | 2024-07-10 | 2               | 25                   | 23        |
 | 3      | 2024-08-05 | 1               | 20                   | 19        |
 | 4      | 2024-09-01 | 1               | 35                   | 34        |
 | 5      | 2024-10-01 | 1               | 40                   | 39        |
-| 6      | 2024-05-20 | 1               | 15                   | 14        |
+| 6      | 2025-05-14 | 1               | 15                   | 14        |
 | 7      | 2024-11-15 | 1               | 10                   | 9         |
-| 10     | 2024-03-05 | 3               | 25                   | 22        |
+| 8      | 2024-12-01 | 0               | 50                   | 50        |
+| 9      | 2024-04-10 | 0               | 30                   | 30        |
+| 10     | 2025-03-14 | 3               | 25                   | 22        |
 
 Nazwa widoku: **AttractionParticipantsCount**
 
@@ -473,9 +426,42 @@ GROUP BY Trips.TripID, Attractions.AttractionID, Trips.StartDate, Attractions.Ma
 
 | TripID | AttractionID | TripDate   | SumParticipants | MaxParticipantsCount | SlotsLeft |
 | :----- | :----------- | :--------- | :-------------- | :------------------- | :-------- |
+| 1      | 1            | 2024-06-15 | 0               | 30                   | 30        |
+| 1      | 2            | 2024-06-15 | 0               | 30                   | 30        |
+| 1      | 3            | 2024-06-15 | 0               | 30                   | 30        |
+| 2      | 4            | 2024-07-10 | 0               | 25                   | 25        |
 | 2      | 5            | 2024-07-10 | 1               | 25                   | 24        |
+| 2      | 6            | 2024-07-10 | 0               | 25                   | 25        |
+| 3      | 7            | 2024-08-05 | 0               | 20                   | 20        |
+| 3      | 8            | 2024-08-05 | 0               | 20                   | 20        |
+| 3      | 9            | 2024-08-05 | 0               | 20                   | 20        |
+| 4      | 10           | 2024-09-01 | 0               | 35                   | 35        |
+| 4      | 11           | 2024-09-01 | 0               | 35                   | 35        |
+| 4      | 12           | 2024-09-01 | 0               | 35                   | 35        |
 | 5      | 13           | 2024-10-01 | 1               | 40                   | 39        |
-| 6      | 16           | 2024-05-20 | 1               | 15                   | 14        |
+| 5      | 14           | 2024-10-01 | 0               | 40                   | 40        |
+| 5      | 15           | 2024-10-01 | 0               | 40                   | 40        |
+| 6      | 16           | 2025-05-14 | 1               | 15                   | 14        |
+| 6      | 17           | 2025-05-14 | 0               | 15                   | 15        |
+| 6      | 18           | 2025-05-14 | 0               | 15                   | 15        |
+| 7      | 19           | 2024-11-15 | 0               | 10                   | 10        |
+| 7      | 20           | 2024-11-15 | 0               | 10                   | 10        |
+| 7      | 21           | 2024-11-15 | 0               | 10                   | 10        |
+| 8      | 22           | 2024-12-01 | 0               | 50                   | 50        |
+| 8      | 23           | 2024-12-01 | 0               | 50                   | 50        |
+| 8      | 24           | 2024-12-01 | 0               | 50                   | 50        |
+| 9      | 25           | 2024-04-10 | 0               | 30                   | 30        |
+| 9      | 26           | 2024-04-10 | 0               | 30                   | 30        |
+| 9      | 27           | 2024-04-10 | 0               | 30                   | 30        |
+| 10     | 28           | 2025-03-14 | 0               | 25                   | 25        |
+| 10     | 29           | 2025-03-14 | 0               | 25                   | 25        |
+| 10     | 30           | 2025-03-14 | 0               | 25                   | 25        |
+| 11     | 31           | 2025-02-05 | 0               | 45                   | 45        |
+| 11     | 32           | 2025-02-05 | 0               | 45                   | 45        |
+| 11     | 33           | 2025-02-05 | 0               | 45                   | 45        |
+| 12     | 34           | 2025-01-01 | 0               | 20                   | 20        |
+| 12     | 35           | 2025-01-01 | 0               | 20                   | 20        |
+| 12     | 36           | 2025-01-01 | 0               | 20                   | 20        |
 
 Nazwa widoku: **TotalPrice**
 
@@ -565,12 +551,12 @@ WHERE TripPrice + AttractionPrice - Amount > 0
 
 Nazwa widoku: **CustomerParticipantList**
 
-- Opis: Wyświetla listę wszystkich dodanych uczestników przez danego klienta w ramach danej wycieczki.
+- Opis: Wyświetla listę wszystkich dodanych uczestników przez danego klienta w ramach danego zamówienia.
 
 ```sql
 CREATE VIEW CustomerParticipantList
 AS
-SELECT Customers.CustomerID, Participants.ParticipantID, Orders.OrderID, Orders.OrderDate
+SELECT Customers.CustomerID, Participants.ParticipantID, Orders.OrderID, TripOrders.TripOrderID, Orders.OrderDate
 FROM Customers
 JOIN Orders on Customers.CustomerID = Orders.CustomerID
 JOIN TripOrders on Orders.OrderID = TripOrders.OrderID
@@ -578,20 +564,20 @@ JOIN TripParticipants on TripOrders.TripOrderID = TripParticipants.TripOrderID
 JOIN Participants on TripParticipants.ParticipantID = Participants.ParticipantID;
 ```
 
-| CustomerID | ParticipantID | OrderID | OrderDate               |
-| :--------- | :------------ | :------ | :---------------------- |
-| 1          | 1             | 1       | 2024-05-01 00:00:00.000 |
-| 1          | 2             | 1       | 2024-05-01 00:00:00.000 |
-| 2          | 3             | 2       | 2024-05-02 00:00:00.000 |
-| 2          | 4             | 2       | 2024-05-02 00:00:00.000 |
-| 3          | 5             | 3       | 2024-05-03 00:00:00.000 |
-| 4          | 6             | 4       | 2024-05-04 00:00:00.000 |
-| 5          | 7             | 5       | 2024-05-05 00:00:00.000 |
-| 6          | 8             | 6       | 2024-05-06 00:00:00.000 |
-| 7          | 9             | 7       | 2024-05-07 00:00:00.000 |
-| 8          | 10            | 8       | 2024-05-08 00:00:00.000 |
-| 9          | 11            | 9       | 2024-05-09 00:00:00.000 |
-| 10         | 12            | 10      | 2024-05-10 00:00:00.000 |
+| CustomerID | ParticipantID | OrderID | TripOrderID | OrderDate               |
+| :--------- | :------------ | :------ | :---------- | :---------------------- |
+| 1          | 1             | 1       | 1           | 2024-05-01 00:00:00.000 |
+| 1          | 2             | 1       | 1           | 2024-05-01 00:00:00.000 |
+| 2          | 3             | 2       | 2           | 2024-05-02 00:00:00.000 |
+| 2          | 4             | 2       | 2           | 2024-05-02 00:00:00.000 |
+| 3          | 5             | 3       | 3           | 2024-05-03 00:00:00.000 |
+| 4          | 6             | 4       | 4           | 2024-05-04 00:00:00.000 |
+| 5          | 7             | 5       | 5           | 2024-05-05 00:00:00.000 |
+| 6          | 8             | 6       | 6           | 2024-05-06 00:00:00.000 |
+| 7          | 9             | 7       | 7           | 2024-05-07 00:00:00.000 |
+| 8          | 10            | 8       | 8           | 2024-05-08 00:00:00.000 |
+| 9          | 11            | 9       | 9           | 2024-05-09 00:00:00.000 |
+| 10         | 12            | 10      | 10          | 2024-05-10 00:00:00.000 |
 
 ### Procedury
 
@@ -613,14 +599,14 @@ Dla _CustomerID_ równego 1:
 | :------ | :-------- |
 | 1       | 700.0000  |
 
-Nazwa procedury: **ListTripParticipants**
+Nazwa procedury: **ListOrderParticipants**
 
 - Opis: Wylistowuje dane wszystkich uczestników, którzy są zapisani do konkretnego zamówienia.
 
 ```sql
-CREATE PROCEDURE ListTripParticipants @OrderID int
+CREATE PROCEDURE ListOrderParticipants @OrderID int
 AS
-SELECT OrderID, ParticipantID
+SELECT OrderID, TripOrderID, ParticipantID
 FROM CustomerParticipantList
 WHERE OrderID = @OrderID;
 ```
@@ -632,6 +618,44 @@ Dla _OrderID_ równego 1:
 | 1       | 1             |
 | 1       | 2             |
 
+Nazwa procedury: **ListTripOrderParticipants**
+
+- Opis: Wylistowuje dane wszystkich uczestników, którzy są zapisani do konkretnego zamówienia wycieczki.
+
+```sql
+CREATE PROCEDURE ListTripOrderParticipants @TripOrderID int
+AS
+SELECT TripOrderID, ParticipantID
+FROM CustomerParticipantList
+WHERE TripOrderID = @TripOrderID;
+```
+
+Dla _TripOrderID_ równego 1:
+
+| TripOrderID | ParticipantID |
+| :---------- | :------------ |
+| 1           | 1             |
+| 1           | 2             |
+
+Nazwa procedury: **ListAttractionParticipants**
+
+- Opis: Wylistowuje dane wszystkich uczestników, którzy są zapisani do konkretnego zamówienia atrakcji.
+
+```sql
+CREATE PROCEDURE ListAttractionParticipants @AttractionOrderID int
+AS
+SELECT AttractionOrders.AttractionOrderID, ParticipantID
+FROM AttractionOrders
+JOIN AttractionParticipants ON AttractionOrders.AttractionOrderID = AttractionParticipants.AttractionOrderID
+WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID;
+```
+
+Dla _AttractionOrderID_ równego 1:
+
+| AttractionOrderID | ParticipantID |
+| :---------------- | :------------ |
+| 1                 | 8             |
+
 Nazwa procedury: **TripsWithXSlotsLeft**
 
 - Opis: Wyświetla wszystkie dostępne wycieczki, w ramach których jest conajmniej podana liczba wolnych miejsc.
@@ -639,22 +663,27 @@ Nazwa procedury: **TripsWithXSlotsLeft**
 ```sql
 CREATE PROCEDURE TripsWithXSlotsLeft @SlotsLeft int
 AS
-SELECT TripID, TripDate, SlotsLeft
+SELECT Trips.TripID, Trips.TripName, TripParticipantsCount.TripDate, SlotsLeft
 FROM TripParticipantsCount
-WHERE SlotsLeft >= @SlotsLeft
+JOIN Trips ON TripParticipantsCount.TripID = Trips.TripID
+WHERE SlotsLeft >= @SlotsLeft;
 ```
 
 Dla _SlotsLeft_ równego 10:
 
-| TripID | TripDate   | SlotsLeft |
-| :----- | :--------- | :-------- |
-| 1      | 2024-06-15 | 28        |
-| 2      | 2024-07-10 | 23        |
-| 3      | 2024-08-05 | 19        |
-| 4      | 2024-09-01 | 34        |
-| 5      | 2024-10-01 | 39        |
-| 6      | 2024-05-20 | 14        |
-| 10     | 2024-03-05 | 22        |
+| TripID | TripName                    | TripDate   | SlotsLeft |
+| :----- | :-------------------------- | :--------- | :-------- |
+| 1      | Vienna City Tour            | 2024-06-15 | 23        |
+| 2      | Prague Historic Walk        | 2024-07-10 | 23        |
+| 3      | Paris Museum Excursion      | 2024-08-05 | 19        |
+| 4      | Berlin Wall Experience      | 2024-09-01 | 34        |
+| 5      | Athens Ancient Sites        | 2024-10-01 | 39        |
+| 6      | Dublin Literary Tour        | 2025-05-14 | 14        |
+| 8      | Tokyo Technology Tour       | 2024-12-01 | 50        |
+| 9      | Krakow Cultural Exploration | 2024-04-10 | 30        |
+| 10     | Barcelona Art Journey       | 2025-03-14 | 22        |
+| 11     | Bangkok Temple Tour         | 2025-02-05 | 45        |
+| 12     | London Royal Sights         | 2025-01-01 | 20        |
 
 Nazwa procedury: **TripsTo**
 
@@ -724,4 +753,129 @@ BEGIN
 END;
 ```
 
+Nazwa procedury: **AssociateParticipantWithTrip**
+
+- Opis: Umożliwia powiązanie uczestnika z konkretną zamówioną wycieczką.
+
+```sql
+CREATE PROCEDURE AssociateParticipantWithTrip @PassportID varchar(40), @TripOrderID int
+AS
+BEGIN
+    IF (((SELECT COUNT(*) AS cnt FROM CustomerParticipantList WHERE TripOrderID = @TripOrderID)
+        >= (SELECT ParticipantsCount FROM TripOrders WHERE TripOrderID = @TripOrderID))
+        OR
+        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM TripOrders WHERE TripOrderID = @TripOrderID))) < GETDATE())
+        OR
+        (@PassportID NOT IN (SELECT PassportID FROM Participants))
+    )
+    BEGIN
+        THROW 50001, 'You cannot associate the participant with this trip order.', 1
+    END
+    INSERT INTO TripParticipants(TripOrderID, ParticipantID)
+    VALUES
+        (@TripOrderID, (SELECT ParticipantID FROM Participants WHERE PassportID = @PassportID))
+END;
+```
+
+Nazwa procedury: **AssociateParticipantWithAttraction**
+
+- Opis: Umożliwia powiązanie uczestnika z konkretną zamówioną atrakcją.
+
+```sql
+CREATE PROCEDURE AssociateParticipantWithAttraction @PassportID varchar(40), @AttractionOrderID int
+AS
+BEGIN
+    IF (((SELECT COUNT(*) AS cnt
+        FROM AttractionOrders
+        JOIN AttractionParticipants ON AttractionOrders.AttractionOrderID = AttractionParticipants.AttractionOrderID
+        WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID)
+        >= (SELECT ParticipantsCount FROM AttractionOrders WHERE AttractionOrderID = @AttractionOrderID))
+        OR
+        ((DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID =
+        (SELECT TripID FROM AttractionOrders JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
+        WHERE AttractionOrderID = @AttractionOrderID))) < GETDATE()))
+        OR
+        (@PassportID NOT IN (SELECT PassportID FROM Participants))
+    )
+    BEGIN
+        THROW 50001, 'You cannot associate the participant with this trip order.', 1
+    END
+    INSERT INTO AttractionParticipants(AttractionOrderID, ParticipantID)
+    VALUES
+        (@AttractionOrderID, (SELECT ParticipantID FROM Participants WHERE PassportID = @PassportID))
+END;
+```
+
+### Triggery
+
+Nazwa triggera: **ParticipantTripAssociationCheck**
+
+- Opis: Przy dodawaniu uczestnika do atrakcji sprawdza czy dany uczestnik jest już powiązany z wycieczką, do której ta atrakcja jest przypisana.
+
+```sql
+CREATE TRIGGER ParticipantTripAssociationCheck
+    ON AttractionParticipants
+    AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF NOT EXISTS(SELECT 1
+        FROM inserted
+        JOIN AttractionOrders ON inserted.AttractionOrderID = AttractionOrders.AttractionOrderID
+        JOIN TripParticipants ON inserted.ParticipantID = TripParticipants.ParticipantID
+        JOIN TripOrders ON TripParticipants.TripOrderID = TripOrders.TripOrderID
+        WHERE TripOrders.OrderID = AttractionOrders.OrderID
+    )
+    BEGIN
+        THROW 50001, 'Participant is not associated with the trip for this attraction.', 1
+    END
+END;
+```
+
+Nazwa triggera: **AttractionOrderCheck**
+
+- Opis: Przy składaniu zamówienia na daną atrakcję, sprawdza czy została wykupiona wycieczka, która ją oferuje.
+
+```sql
+CREATE TRIGGER AttractionOrderCheck
+    ON AttractionOrders
+    AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF NOT EXISTS(SELECT TripOrderID
+              FROM TripOrders
+              WHERE TripOrders.OrderID = (SELECT OrderID
+                                          FROM inserted)
+                AND TripID = (SELECT TripID
+                              FROM Attractions
+                              WHERE Attractions.AttractionID = (SELECT AttractionID
+                                                                FROM inserted)))
+    BEGIN
+        THROW 50001, 'You cannot add an attraction if the related trip has not been purchased.', 1
+    END
+END;
+```
+
 ## 4. Inne
+
+### Role
+
+Nazwa roli: **User**
+
+- Opis: Rola, która jest nadawana domyślnie każdemu.
+
+```sql
+CREATE ROLE DefaultUser
+
+GRANT SELECT ON dbo.Trips TO DefaultUser
+GRANT SELECT ON dbo.Attractions TO DefaultUser
+```
+
+Nazwa roli: **Customer**
+
+- Opis: Rola nadawana klientom, którzy są zapisani w bazie klientów.
+
+```sql
+CREATE ROLE Customer
+
+??
+```
