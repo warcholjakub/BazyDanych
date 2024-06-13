@@ -859,6 +859,54 @@ BEGIN
 END;
 ```
 
+Nazwa procedury: **CancelOrder**
+
+- Opis: Pozwala na anulowanie konkretnego zamówienia.
+
+```sql
+CREATE PROCEDURE CancelOrder @OrderID int
+AS
+BEGIN
+    IF (@OrderID NOT IN (SELECT OrderID FROM Orders))
+    BEGIN
+        THROW 5001, 'There is no such order.', 1
+    END
+
+    UPDATE Orders
+    SET Cancelled = 1
+    WHERE OrderID = @OrderID
+END;
+```
+
+Nazwa procedury: **ChangeAvailability**
+
+- Opis: Umożliwia zmienienie dostępności konkretnej wycieczki.
+
+```sql
+CREATE PROCEDURE ChangeAvailability @TripID int, @IsAvailable bit
+AS
+BEGIN
+    UPDATE Trips
+    SET IsAvailable = @IsAvailable
+    WHERE TripID = @TripID
+END;
+```
+
+Nazwa procedury: **AddParticipant**
+
+- Opis: Pozwala na dodanie uczestnika do tabeli uczestników.
+
+```sql
+CREATE PROCEDURE AddParticipant @FirstName varchar(20), @LastName varchar(20), @PassportID varchar(40), @City varchar(30),
+                @Country varchar(30), @PostalCode varchar(10), @Phone varchar(15)
+AS
+BEGIN
+    INSERT INTO Participants(FirstName, LastName, PassportID, City, Country, PostalCode, Phone)
+    VALUES
+        (@FirstName, @LastName, @PassportID, @City, @Country, @PostalCode, @Phone)
+END;
+```
+
 ### Triggery
 
 Nazwa triggera: **ParticipantTripAssociationCheck**
