@@ -296,11 +296,11 @@ CREATE TABLE AttractionParticipants (
     CONSTRAINT AttractionParticipants_pk PRIMARY KEY  (AttractionOrderID,ParticipantID)
 );
 
-ALTER TABLE AttractionParticipants ADD CONSTRAINT do_nazwania_AttractionOrders
+ALTER TABLE AttractionParticipants ADD CONSTRAINT AttractionParticipants_AttractionOrders
     FOREIGN KEY (AttractionOrderID)
     REFERENCES AttractionOrders (AttractionOrderID);
 
-ALTER TABLE AttractionParticipants ADD CONSTRAINT do_nazwania_Participants
+ALTER TABLE AttractionParticipants ADD CONSTRAINT AttractionParticipants_Participants
     FOREIGN KEY (ParticipantID)
     REFERENCES Participants (ParticipantID);
 ```
