@@ -68,13 +68,13 @@ Nazwa tabeli: **Trips**
 
 ```sql
 CREATE TABLE Trips (
-    TripID int  NOT NULL,
+    TripID int  IDENTITY NOT NULL,
     TripName varchar(90)  NOT NULL,
     DestinationCity varchar(30)  NOT NULL,
     DestinationCountry varchar(30)  NOT NULL,
     StartDate date  NOT NULL,
     EndDate date  NOT NULL,
-    MaxParticipantsCount smallint  NOT NULL,
+    MaxParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
     IsAvailable bit  NOT NULL DEFAULT 0,
     CONSTRAINT Trips_DateCheck CHECK (StartDate < EndDate),
@@ -104,7 +104,7 @@ Nazwa tabeli: **Attractions**
 
 ```sql
 CREATE TABLE Attractions (
-    AttractionID int  NOT NULL,
+    AttractionID int  IDENTITY NOT NULL,
     TripID int  NOT NULL,
     AttractionName varchar(90)  NOT NULL,
     MaxParticipantsCount smallint  NOT NULL,
@@ -134,7 +134,7 @@ Nazwa tabeli: **Orders**
 
 ```sql
 CREATE TABLE Orders (
-    OrderID int  NOT NULL,
+    OrderID int  IDENTITY NOT NULL,
     OrderDate datetime  NOT NULL,
     CustomerID int  NOT NULL,
     IsCancelled bit  NOT NULL DEFAULT 0,
@@ -162,7 +162,7 @@ Nazwa tabeli: **Payments**
 
 ```sql
 CREATE TABLE Payments (
-    PaymentID int  NOT NULL,
+    PaymentID int  IDENTITY NOT NULL,
     OrderID int  NOT NULL,
     PaymentDate datetime  NOT NULL,
     Amount money  NOT NULL,
@@ -194,7 +194,7 @@ Nazwa tabeli: **TripOrders**
 
 ```sql
 CREATE TABLE TripOrders (
-    TripOrderID int  NOT NULL,
+    TripOrderID int  IDENTITY NOT NULL,
     OrderID int  NOT NULL,
     TripID int  NOT NULL,
     OrderDate datetime  NOT NULL,
@@ -227,7 +227,7 @@ Nazwa tabeli: **TripParticipants**
 
 ```sql
 CREATE TABLE TripParticipants (
-    TripOrderID int  NOT NULL,
+    TripOrderID int  IDENTITY NOT NULL,
     ParticipantID int  NOT NULL,
     CONSTRAINT TripParticipants_pk PRIMARY KEY  (TripOrderID,ParticipantID)
 );
@@ -258,7 +258,7 @@ Nazwa tabeli: **AttractionOrders**
 
 ```sql
 CREATE TABLE AttractionOrders (
-    AttractionOrderID int  NOT NULL,
+    AttractionOrderID int  IDENTITY NOT NULL,
     OrderID int  NOT NULL,
     AttractionID int  NOT NULL,
     OrderDate datetime  NOT NULL,
@@ -291,7 +291,7 @@ Nazwa tabeli: **AttractionParticipants**
 
 ```sql
 CREATE TABLE AttractionParticipants (
-    AttractionOrderID int  NOT NULL,
+    AttractionOrderID int  IDENTITY NOT NULL,
     ParticipantID int  NOT NULL,
     CONSTRAINT AttractionParticipants_pk PRIMARY KEY  (AttractionOrderID,ParticipantID)
 );
@@ -324,7 +324,7 @@ Nazwa tabeli: **Participants**
 
 ```sql
 CREATE TABLE Participants (
-    ParticipantID int  NOT NULL,
+    ParticipantID int  IDENTITY NOT NULL,
     FirstName varchar(20)  NOT NULL,
     LastName varchar(30)  NOT NULL,
     PassportID varchar(40)  NOT NULL,
@@ -359,7 +359,7 @@ Nazwa tabeli: **Customers**
 
 ```sql
 CREATE TABLE Customers (
-    CustomerID int  NOT NULL,
+    CustomerID int  IDENTITY NOT NULL,
     CompanyName varchar(100)  NULL,
     FirstName varchar(20)  NOT NULL,
     LastName varchar(30)  NOT NULL,
