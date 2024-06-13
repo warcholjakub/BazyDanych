@@ -643,7 +643,7 @@ FROM AttractionOrders
 JOIN AttractionParticipants ON AttractionOrders.AttractionOrderID = AttractionParticipants.AttractionOrderID
 JOIN Attractions ON AttractionOrders.AttractionID = Attractions.AttractionID
 JOIN Participants ON AttractionParticipants.ParticipantID = Participants.ParticipantID
-WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID int;
+WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID;
 ```
 
 Dla _AttractionOrderID_ równego 1:
