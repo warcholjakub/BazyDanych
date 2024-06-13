@@ -710,28 +710,50 @@ Nazwa procedury: **BuyTrip**
 ```sql
 CREATE PROCEDURE BuyTrip @OrderID int, @TripID int, @ParticipantsCount int, @CustomerID int
 AS
-BEGIN
+BEGIN TRY
     IF ((SELECT SlotsLeft FROM TripParticipantsCount
         WHERE TripID = @TripID) < @ParticipantsCount)
-        OR
-        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = @TripID)) < GETDATE())
-        OR
-        ((SELECT IsAvailable FROM Trips WHERE TripID = @TripID) <> 1)
-        OR
-        ((SELECT IsCancelled FROM Orders WHERE OrderID = @OrderID) <> 0)
     BEGIN
-        THROW 50001, 'You cannot buy this trip.', 1
+        THROW 50001, 'There is not enough free slots for this trip.', 1
     END
-    IF (@OrderID NOT IN (SELECT OrderID FROM Orders))
-        INSERT INTO Orders(OrderID, OrderDate, CustomerID, IsCancelled)
-        VALUES
-            ((SELECT MAX(OrderID) + 1 FROM Orders), GETDATE(), @CustomerID, 0)
 
-    INSERT INTO TripOrders(TripOrderID, OrderID, TripID, OrderDate, ParticipantsCount, Price)
-    VALUES
-        ((SELECT MAX(TripOrderID) + 1 FROM TripOrders), (SELECT MAX(OrderID) FROM Orders), @TripID, GETDATE(),
-        @ParticipantsCount, CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
-END;
+    IF (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = @TripID)) < GETDATE())
+    BEGIN
+        THROW 50001, 'Ordering this trip is locked.', 1
+    END
+
+    IF ((SELECT IsAvailable FROM Trips WHERE TripID = @TripID) = 0)
+    BEGIN
+        THROW 50001, 'This trip is not available currently.', 1
+    END
+
+    IF ((SELECT IsCancelled FROM Orders WHERE OrderID = @OrderID) = 1)
+    BEGIN
+        THROW 50001, 'This order is cancelled.', 1
+    END
+
+    BEGIN TRANSACTION
+        IF (@OrderID NOT IN (SELECT OrderID FROM Orders))
+            INSERT INTO Orders(OrderDate, CustomerID, IsCancelled)
+            VALUES
+                (GETDATE(), @CustomerID, 0)
+
+        INSERT INTO TripOrders(TripID, OrderDate, ParticipantsCount, Price)
+        VALUES
+            (@TripID, GETDATE(), @ParticipantsCount,
+            CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
+    COMMIT
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRAN
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE()
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY()
+        DECLARE @ErrorState INT = ERROR_STATE()
+
+    RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+END CATCH;
 ```
 
 Nazwa procedury: **BuyAttraction**
@@ -744,19 +766,29 @@ AS
 BEGIN
     IF ((SELECT SlotsLeft FROM AttractionParticipantsCount
         WHERE AttractionID = @AttractionID) < @ParticipantsCount)
-        OR
-        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID =
-        (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID))) < GETDATE())
-        OR
-        ((SELECT IsAvailable FROM Trips WHERE TripID = (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID)) <> 1)
-        OR
-        ((SELECT IsCancelled FROM Orders WHERE OrderID = @OrderID) <> 0)
     BEGIN
-        THROW 50001, 'You cannot buy this attraction.', 1
+        THROW 50001, 'There is not enough free slots for this attraction.', 1
     END
-    INSERT INTO AttractionOrders(AttractionOrderID, OrderID, AttractionID, OrderDate, ParticipantsCount, Price)
+
+    IF (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID =
+        (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID))) < GETDATE())
+    BEGIN
+        THROW 50001, 'Buying attractions is locked for this trip.', 1
+    END
+
+    IF ((SELECT IsAvailable FROM Trips WHERE TripID = (SELECT TripID FROM Attractions WHERE AttractionID = @AttractionID)) = 0)
+    BEGIN
+        THROW 50001, 'Trip tied to this attraction is not available currently.', 1
+    END
+
+    IF ((SELECT IsCancelled FROM Orders WHERE OrderID = @OrderID) = 1)
+    BEGIN
+        THROW 50001, 'This order is cancelled.', 1
+    END
+
+    INSERT INTO AttractionOrders(OrderID, AttractionID, OrderDate, ParticipantsCount, Price)
     VALUES
-        ((SELECT MAX(AttractionOrderID) + 1 FROM AttractionOrders), @OrderID, @AttractionID, GETDATE(), @ParticipantsCount,
+        (@OrderID, @AttractionID, GETDATE(), @ParticipantsCount,
         CAST((SELECT Price * @ParticipantsCount FROM Attractions WHERE AttractionID = @AttractionID) as money))
 END;
 ```
@@ -769,17 +801,23 @@ Nazwa procedury: **AssociateParticipantWithTrip**
 CREATE PROCEDURE AssociateParticipantWithTrip @ParticipantID int, @TripOrderID int
 AS
 BEGIN
-    IF (((SELECT COUNT(*) AS cnt FROM CustomerParticipantList WHERE TripOrderID = @TripOrderID)
+    IF ((SELECT COUNT(*) AS cnt FROM CustomerParticipantList WHERE TripOrderID = @TripOrderID)
         >= (SELECT ParticipantsCount FROM TripOrders WHERE TripOrderID = @TripOrderID))
-        OR
-        (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM TripOrders WHERE TripOrderID = @TripOrderID)))
-        < GETDATE())
-        OR
-        (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
-    )
     BEGIN
-        THROW 50001, 'You cannot associate the participant with this trip order.', 1
+        THROW 5001, 'There is not enough free slots in this trip order.', 1
     END
+
+    IF (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM TripOrders WHERE TripOrderID = @TripOrderID)))
+        < GETDATE())
+    BEGIN
+        THROW 5001, 'Associating participants with this trip order is locked.', 1
+    END
+
+    IF (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
+    BEGIN
+        THROW 5001, 'There is no such participant.', 1
+    END
+
     INSERT INTO TripParticipants(TripOrderID, ParticipantID)
     VALUES
         (@TripOrderID, @ParticipantID)
@@ -794,21 +832,27 @@ Nazwa procedury: **AssociateParticipantWithAttraction**
 CREATE PROCEDURE AssociateParticipantWithAttraction @ParticipantID int, @AttractionOrderID int
 AS
 BEGIN
-    IF (((SELECT COUNT(*) AS cnt
+    IF ((SELECT COUNT(*) AS cnt
         FROM AttractionOrders
         JOIN AttractionParticipants ON AttractionOrders.AttractionOrderID = AttractionParticipants.AttractionOrderID
         WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID)
         >= (SELECT ParticipantsCount FROM AttractionOrders WHERE AttractionOrderID = @AttractionOrderID))
-        OR
-        ((DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID =
+    BEGIN
+        THROW 5001, 'There is not enough free slots in this trip order.', 1
+    END
+
+    IF ((DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID =
         (SELECT TripID FROM AttractionOrders JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
         WHERE AttractionOrderID = @AttractionOrderID))) < GETDATE()))
-        OR
-        (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
-    )
     BEGIN
-        THROW 50001, 'You cannot associate the participant with this attraction order.', 1
+        THROW 5001, 'Associating participants with this attraction order is locked.', 1
     END
+
+    IF (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
+    BEGIN
+        THROW 5001, 'There is no such participant.', 1
+    END
+
     INSERT INTO AttractionParticipants(AttractionOrderID, ParticipantID)
     VALUES
         (@AttractionOrderID, @ParticipantID)
@@ -825,6 +869,7 @@ Nazwa triggera: **ParticipantTripAssociationCheck**
 CREATE TRIGGER ParticipantTripAssociationCheck
     ON AttractionParticipants
     AFTER INSERT, UPDATE
+    FOR EACH ROW
 AS
 BEGIN
     IF NOT EXISTS(SELECT 1
@@ -848,6 +893,7 @@ Nazwa triggera: **AttractionOrderCheck**
 CREATE TRIGGER AttractionOrderCheck
     ON AttractionOrders
     AFTER INSERT, UPDATE
+    FOR EACH ROW
 AS
 BEGIN
     IF NOT EXISTS(SELECT TripOrderID
