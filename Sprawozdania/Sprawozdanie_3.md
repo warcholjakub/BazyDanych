@@ -386,26 +386,28 @@ Nazwa widoku: **TripParticipantsCount**
 ```sql
 CREATE VIEW TripParticipantsCount
 AS
-SELECT Trips.TripID, StartDate AS TripDate, ISNULL(SUM(ParticipantsCount), 0) AS SumParticipants,
+SELECT Trips.TripID, TripName, StartDate AS TripDate, ISNULL(SUM(ParticipantsCount), 0) AS SumParticipants,
        MaxParticipantsCount, MaxParticipantsCount - ISNULL(SUM(ParticipantsCount), 0) as SlotsLeft
 FROM TripOrders
 RIGHT JOIN Trips ON Trips.TripID = TripOrders.TripID
 WHERE IsAvailable = 1
-GROUP BY Trips.TripID, StartDate, MaxParticipantsCount;
+GROUP BY Trips.TripID, TripName, StartDate, MaxParticipantsCount;
 ```
 
-| TripID | TripDate   | SumParticipants | MaxParticipantsCount | SlotsLeft |
-| :----- | :--------- | :-------------- | :------------------- | :-------- |
-| 1      | 2024-06-15 | 7               | 30                   | 23        |
-| 2      | 2024-07-10 | 2               | 25                   | 23        |
-| 3      | 2024-08-05 | 1               | 20                   | 19        |
-| 4      | 2024-09-01 | 1               | 35                   | 34        |
-| 5      | 2024-10-01 | 1               | 40                   | 39        |
-| 6      | 2025-05-14 | 1               | 15                   | 14        |
-| 7      | 2024-11-15 | 1               | 10                   | 9         |
-| 8      | 2024-12-01 | 0               | 50                   | 50        |
-| 9      | 2024-04-10 | 0               | 30                   | 30        |
-| 10     | 2025-03-14 | 3               | 25                   | 22        |
+| TripID | TripName | TripDate | SumParticipants | MaxParticipantsCount | SlotsLeft |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Vienna City Tour | 2024-06-15 | 7 | 30 | 23 |
+| 2 | Prague Historic Walk | 2024-07-10 | 2 | 25 | 23 |
+| 3 | Paris Museum Excursion | 2024-08-05 | 1 | 20 | 19 |
+| 4 | Berlin Wall Experience | 2024-09-01 | 1 | 35 | 34 |
+| 5 | Athens Ancient Sites | 2024-10-01 | 40 | 40 | 0 |
+| 6 | Dublin Literary Tour | 2025-05-14 | 1 | 15 | 14 |
+| 7 | Rome Culinary Adventure | 2024-11-15 | 1 | 10 | 9 |
+| 8 | Tokyo Technology Tour | 2024-12-01 | 0 | 50 | 50 |
+| 9 | Krakow Cultural Exploration | 2024-04-10 | 0 | 30 | 30 |
+| 10 | Barcelona Art Journey | 2025-03-14 | 14 | 25 | 11 |
+| 11 | Bangkok Temple Tour | 2025-02-05 | 0 | 45 | 45 |
+| 12 | London Royal Sights | 2025-01-01 | 1 | 20 | 19 |
 
 Nazwa widoku: **AttractionParticipantsCount**
 
@@ -414,54 +416,55 @@ Nazwa widoku: **AttractionParticipantsCount**
 ```sql
 CREATE VIEW AttractionParticipantsCount
 AS
-SELECT Trips.TripID, Attractions.AttractionID, Trips.StartDate AS TripDate,
+SELECT Trips.TripID, TripName, Attractions.AttractionID, AttractionName, Trips.StartDate AS TripDate,
        ISNULL(SUM(ParticipantsCount), 0) AS SumParticipants, Attractions.MaxParticipantsCount,
        Attractions.MaxParticipantsCount - ISNULL(SUM(ParticipantsCount), 0) as SlotsLeft
 FROM AttractionOrders
 RIGHT JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
 JOIN Trips ON Trips.TripID = Attractions.TripID
 WHERE IsAvailable = 1
-GROUP BY Trips.TripID, Attractions.AttractionID, Trips.StartDate, Attractions.MaxParticipantsCount;
+GROUP BY Trips.TripID, TripName, Attractions.AttractionID, AttractionName, Trips.StartDate, Attractions.MaxParticipantsCount;
 ```
 
-| TripID | AttractionID | TripDate   | SumParticipants | MaxParticipantsCount | SlotsLeft |
-| :----- | :----------- | :--------- | :-------------- | :------------------- | :-------- |
-| 1      | 1            | 2024-06-15 | 0               | 30                   | 30        |
-| 1      | 2            | 2024-06-15 | 0               | 30                   | 30        |
-| 1      | 3            | 2024-06-15 | 0               | 30                   | 30        |
-| 2      | 4            | 2024-07-10 | 0               | 25                   | 25        |
-| 2      | 5            | 2024-07-10 | 1               | 25                   | 24        |
-| 2      | 6            | 2024-07-10 | 0               | 25                   | 25        |
-| 3      | 7            | 2024-08-05 | 0               | 20                   | 20        |
-| 3      | 8            | 2024-08-05 | 0               | 20                   | 20        |
-| 3      | 9            | 2024-08-05 | 0               | 20                   | 20        |
-| 4      | 10           | 2024-09-01 | 0               | 35                   | 35        |
-| 4      | 11           | 2024-09-01 | 0               | 35                   | 35        |
-| 4      | 12           | 2024-09-01 | 0               | 35                   | 35        |
-| 5      | 13           | 2024-10-01 | 1               | 40                   | 39        |
-| 5      | 14           | 2024-10-01 | 0               | 40                   | 40        |
-| 5      | 15           | 2024-10-01 | 0               | 40                   | 40        |
-| 6      | 16           | 2025-05-14 | 1               | 15                   | 14        |
-| 6      | 17           | 2025-05-14 | 0               | 15                   | 15        |
-| 6      | 18           | 2025-05-14 | 0               | 15                   | 15        |
-| 7      | 19           | 2024-11-15 | 0               | 10                   | 10        |
-| 7      | 20           | 2024-11-15 | 0               | 10                   | 10        |
-| 7      | 21           | 2024-11-15 | 0               | 10                   | 10        |
-| 8      | 22           | 2024-12-01 | 0               | 50                   | 50        |
-| 8      | 23           | 2024-12-01 | 0               | 50                   | 50        |
-| 8      | 24           | 2024-12-01 | 0               | 50                   | 50        |
-| 9      | 25           | 2024-04-10 | 0               | 30                   | 30        |
-| 9      | 26           | 2024-04-10 | 0               | 30                   | 30        |
-| 9      | 27           | 2024-04-10 | 0               | 30                   | 30        |
-| 10     | 28           | 2025-03-14 | 0               | 25                   | 25        |
-| 10     | 29           | 2025-03-14 | 0               | 25                   | 25        |
-| 10     | 30           | 2025-03-14 | 0               | 25                   | 25        |
-| 11     | 31           | 2025-02-05 | 0               | 45                   | 45        |
-| 11     | 32           | 2025-02-05 | 0               | 45                   | 45        |
-| 11     | 33           | 2025-02-05 | 0               | 45                   | 45        |
-| 12     | 34           | 2025-01-01 | 0               | 20                   | 20        |
-| 12     | 35           | 2025-01-01 | 0               | 20                   | 20        |
-| 12     | 36           | 2025-01-01 | 0               | 20                   | 20        |
+| TripID | TripName | AttractionID | AttractionName | TripDate | SumParticipants | MaxParticipantsCount | SlotsLeft |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Vienna City Tour | 1 | Schönbrunn Palace Tour | 2024-06-15 | 0 | 30 | 30 |
+| 1 | Vienna City Tour | 2 | Vienna State Opera Visit | 2024-06-15 | 0 | 30 | 30 |
+| 1 | Vienna City Tour | 3 | Belvedere Museum Excursion | 2024-06-15 | 0 | 30 | 30 |
+| 2 | Prague Historic Walk | 4 | Prague Castle Walk | 2024-07-10 | 0 | 25 | 25 |
+| 2 | Prague Historic Walk | 5 | Charles Bridge Photo Stop | 2024-07-10 | 1 | 25 | 24 |
+| 2 | Prague Historic Walk | 6 | Old Town Square Exploration | 2024-07-10 | 0 | 25 | 25 |
+| 3 | Paris Museum Excursion | 7 | Louvre Museum Tour | 2024-08-05 | 0 | 20 | 20 |
+| 3 | Paris Museum Excursion | 8 | Eiffel Tower Visit | 2024-08-05 | 0 | 20 | 20 |
+| 3 | Paris Museum Excursion | 9 | Seine River Cruise | 2024-08-05 | 0 | 20 | 20 |
+| 4 | Berlin Wall Experience | 10 | Berlin Wall Memorial | 2024-09-01 | 0 | 35 | 35 |
+| 4 | Berlin Wall Experience | 11 | Brandenburg Gate Visit | 2024-09-01 | 0 | 35 | 35 |
+| 4 | Berlin Wall Experience | 12 | Museum Island Tour | 2024-09-01 | 0 | 35 | 35 |
+| 5 | Athens Ancient Sites | 13 | Acropolis of Athens | 2024-10-01 | 40 | 40 | 0 |
+| 5 | Athens Ancient Sites | 14 | Parthenon Guided Tour | 2024-10-01 | 0 | 40 | 40 |
+| 5 | Athens Ancient Sites | 15 | National Archaeological Museum | 2024-10-01 | 0 | 40 | 40 |
+| 6 | Dublin Literary Tour | 16 | Trinity College Library | 2025-05-14 | 1 | 15 | 14 |
+| 6 | Dublin Literary Tour | 17 | Guinness Storehouse Tour | 2025-05-14 | 0 | 15 | 15 |
+| 6 | Dublin Literary Tour | 18 | Dublin Castle Visit | 2025-05-14 | 0 | 15 | 15 |
+| 7 | Rome Culinary Adventure | 19 | Colosseum Tour | 2024-11-15 | 0 | 10 | 10 |
+| 7 | Rome Culinary Adventure | 20 | Vatican Museums Visit | 2024-11-15 | 0 | 10 | 10 |
+| 7 | Rome Culinary Adventure | 21 | Roman Forum Walk | 2024-11-15 | 0 | 10 | 10 |
+| 8 | Tokyo Technology Tour | 22 | Tokyo Skytree Visit | 2024-12-01 | 0 | 50 | 50 |
+| 8 | Tokyo Technology Tour | 23 | Akihabara Technology Tour | 2024-12-01 | 0 | 50 | 50 |
+| 8 | Tokyo Technology Tour | 24 | Meiji Shrine Exploration | 2024-12-01 | 0 | 50 | 50 |
+| 9 | Krakow Cultural Exploration | 25 | Wawel Castle Tour | 2024-04-10 | 0 | 30 | 30 |
+| 9 | Krakow Cultural Exploration | 26 | Salt Mine Excursion | 2024-04-10 | 0 | 30 | 30 |
+| 9 | Krakow Cultural Exploration | 27 | Old Town Market Square Visit | 2024-04-10 | 0 | 30 | 30 |
+| 10 | Barcelona Art Journey | 28 | Sagrada Familia Visit | 2025-03-14 | 10 | 25 | 15 |
+| 10 | Barcelona Art Journey | 29 | Park Güell Tour | 2025-03-14 | 0 | 25 | 25 |
+| 10 | Barcelona Art Journey | 30 | Gothic Quarter Walk | 2025-03-14 | 0 | 25 | 25 |
+| 11 | Bangkok Temple Tour | 31 | Grand Palace Tour | 2025-02-05 | 0 | 45 | 45 |
+| 11 | Bangkok Temple Tour | 32 | Wat Arun Temple Visit | 2025-02-05 | 0 | 45 | 45 |
+| 11 | Bangkok Temple Tour | 33 | Floating Market Excursion | 2025-02-05 | 0 | 45 | 45 |
+| 12 | London Royal Sights | 34 | Tower of London Visit | 2025-01-01 | 0 | 20 | 20 |
+| 12 | London Royal Sights | 35 | Buckingham Palace Tour | 2025-01-01 | 0 | 20 | 20 |
+| 12 | London Royal Sights | 36 | British Museum Exploration | 2025-01-01 | 0 | 20 | 20 |
+
 
 Nazwa widoku: **TotalPrice**
 
@@ -470,7 +473,8 @@ Nazwa widoku: **TotalPrice**
 ```sql
 CREATE VIEW TotalPrice
 AS
-SELECT OrderID,
+SELECT *, (TripPrice+AttractionPrice-Amount) AS LeftToPay
+FROM (SELECT OrderID, OrderDate,
         (SELECT ISNULL(SUM(Price), 0)
          FROM TripOrders
          WHERE Orders.OrderID = TripOrders.OrderID) AS TripPrice,
@@ -480,47 +484,26 @@ SELECT OrderID,
         (SELECT ISNULL(SUM(Amount), 0)
          FROM Payments
          WHERE Orders.OrderID = Payments.OrderID) AS Amount
-FROM Orders;
+    FROM Orders
+    WHERE IsCancelled = 0) AS PaymentsState;
 ```
 
-| OrderID | OrderDate               | TripPrice | AttractionPrice | Amount   |
-| :------ | :---------------------- | :-------- | :-------------- | :------- |
-| 1       | 2024-05-01 00:00:00.000 | 1000.0000 | 0.0000          | 300.0000 |
-| 2       | 2024-05-02 00:00:00.000 | 900.0000  | 25.0000         | 0.0000   |
-| 3       | 2024-05-03 00:00:00.000 | 600.0000  | 0.0000          | 0.0000   |
-| 4       | 2024-05-04 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
-| 5       | 2024-05-05 00:00:00.000 | 650.0000  | 60.0000         | 0.0000   |
-| 6       | 2024-05-06 00:00:00.000 | 400.0000  | 20.0000         | 0.0000   |
-| 7       | 2024-05-07 00:00:00.000 | 700.0000  | 0.0000          | 0.0000   |
-| 8       | 2024-05-08 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
-| 9       | 2024-05-09 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
-| 10      | 2024-05-10 00:00:00.000 | 550.0000  | 0.0000          | 0.0000   |
-
-Nazwa widoku: **SumCustomerOrders**
-
-- Opis: Widok ten wyświetla liczbę zamówień złożonych przez każdego klienta.
-
-```sql
-CREATE VIEW SumCustomerOrders
-AS
-SELECT Customers.CustomerID, COUNT(OrderID) AS AllOrders
-FROM Customers
-JOIN Orders ON Orders.CustomerID = Customers.CustomerID
-GROUP BY Customers.CustomerID;
-```
-
-| CustomerID | AllOrders |
-| :--------- | :-------- |
-| 1          | 1         |
-| 2          | 1         |
-| 3          | 1         |
-| 4          | 1         |
-| 5          | 1         |
-| 6          | 1         |
-| 7          | 1         |
-| 8          | 1         |
-| 9          | 1         |
-| 10         | 1         |
+| OrderID | OrderDate | TripPrice | AttractionPrice | Amount | LeftToPay |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 2024-05-01 00:00:00.000 | 3500.0000 | 0.0000 | 400.0000 | 3100.0000 |
+| 2 | 2024-05-02 00:00:00.000 | 900.0000 | 25.0000 | 0.0000 | 925.0000 |
+| 3 | 2024-05-03 00:00:00.000 | 600.0000 | 0.0000 | 0.0000 | 600.0000 |
+| 4 | 2024-05-04 00:00:00.000 | 550.0000 | 0.0000 | 0.0000 | 550.0000 |
+| 5 | 2024-05-05 00:00:00.000 | 26000.0000 | 2400.0000 | 0.0000 | 28400.0000 |
+| 6 | 2024-05-06 00:00:00.000 | 400.0000 | 20.0000 | 0.0000 | 420.0000 |
+| 7 | 2024-05-07 00:00:00.000 | 700.0000 | 0.0000 | 0.0000 | 700.0000 |
+| 8 | 2024-05-08 00:00:00.000 | 550.0000 | 0.0000 | 550.0000 | 0.0000 |
+| 9 | 2024-05-09 00:00:00.000 | 550.0000 | 0.0000 | 0.0000 | 550.0000 |
+| 10 | 2024-05-10 00:00:00.000 | 550.0000 | 0.0000 | 0.0000 | 550.0000 |
+| 11 | 2024-06-10 21:23:26.360 | 6050.0000 | 600.0000 | 0.0000 | 6650.0000 |
+| 12 | 2024-06-11 00:11:11.580 | 800.0000 | 0.0000 | 0.0000 | 800.0000 |
+| 13 | 2024-06-11 00:43:48.180 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| 14 | 2024-06-11 00:46:22.607 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
 
 Nazwa widoku: **UnpaidOrders**
 
@@ -530,24 +513,29 @@ Nazwa widoku: **UnpaidOrders**
 CREATE VIEW UnpaidOrders
 AS
 SELECT TotalPrice.OrderID, Orders.OrderDate, Orders.CustomerID,
+       FirstName, LastName, Phone,
        TripPrice + AttractionPrice - Amount AS LeftToPay
 FROM TotalPrice
 JOIN Orders ON Orders.OrderID = TotalPrice.OrderID
+JOIN Customers ON Orders.CustomerID = Customers.CustomerID
 WHERE TripPrice + AttractionPrice - Amount > 0
+AND IsCancelled = 0;
 ```
 
-| OrderID | OrderDate               | CustomerID | LeftToPay |
-| :------ | :---------------------- | :--------- | :-------- |
-| 1       | 2024-05-01 00:00:00.000 | 1          | 700.0000  |
-| 2       | 2024-05-02 00:00:00.000 | 2          | 925.0000  |
-| 3       | 2024-05-03 00:00:00.000 | 3          | 600.0000  |
-| 4       | 2024-05-04 00:00:00.000 | 4          | 550.0000  |
-| 5       | 2024-05-05 00:00:00.000 | 5          | 710.0000  |
-| 6       | 2024-05-06 00:00:00.000 | 6          | 420.0000  |
-| 7       | 2024-05-07 00:00:00.000 | 7          | 700.0000  |
-| 8       | 2024-05-08 00:00:00.000 | 8          | 550.0000  |
-| 9       | 2024-05-09 00:00:00.000 | 9          | 550.0000  |
-| 10      | 2024-05-10 00:00:00.000 | 10         | 550.0000  |
+| OrderID | OrderDate | CustomerID | FirstName | LastName | Phone | LeftToPay |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 2024-05-01 00:00:00.000 | 1 | Marek | Xardas | +4915791234567 | 3100.0000 |
+| 2 | 2024-05-02 00:00:00.000 | 2 | Lester | Goodman | +442071234567 | 925.0000 |
+| 3 | 2024-05-03 00:00:00.000 | 3 | Lares | Rebel | +34911234567 | 600.0000 |
+| 4 | 2024-05-04 00:00:00.000 | 4 | Diego | de la Vega | +390612345678 | 550.0000 |
+| 5 | 2024-05-05 00:00:00.000 | 5 | Milten | Stormeye | +33123456789 | 28400.0000 |
+| 6 | 2024-05-06 00:00:00.000 | 6 | Gorn | Kagan | +48123456789 | 420.0000 |
+| 7 | 2024-05-07 00:00:00.000 | 7 | Lester | de Varel | +302103456789 | 700.0000 |
+| 9 | 2024-05-09 00:00:00.000 | 9 | Baal | Lukor | +420234567890 | 550.0000 |
+| 10 | 2024-05-10 00:00:00.000 | 10 | Corristo | Guillame | +431234567890 | 550.0000 |
+| 11 | 2024-06-10 21:23:26.360 | 2 | Lester | Goodman | +442071234567 | 6650.0000 |
+| 12 | 2024-06-11 00:11:11.580 | 3 | Lares | Rebel | +34911234567 | 800.0000 |
+
 
 Nazwa widoku: **CustomerParticipantList**
 
@@ -556,28 +544,33 @@ Nazwa widoku: **CustomerParticipantList**
 ```sql
 CREATE VIEW CustomerParticipantList
 AS
-SELECT Customers.CustomerID, Participants.ParticipantID, Orders.OrderID, TripOrders.TripOrderID, Orders.OrderDate
+SELECT Customers.CustomerID, Customers.FirstName AS CustomerFirstName, Customers.LastName AS CustomerLastName, Customers.Phone AS CustomerPhone,
+       Participants.ParticipantID, Participants.FirstName AS ParticipantFirstName, Participants.LastName AS ParticipantLastName, Participants.Phone  AS ParticipantPhone,
+       Orders.OrderID, TripOrders.TripOrderID,
+       (SELECT TripName FROM Trips WHERE TripOrders.TripID = Trips.TripID) AS TripName,
+       Orders.OrderDate
 FROM Customers
 JOIN Orders on Customers.CustomerID = Orders.CustomerID
 JOIN TripOrders on Orders.OrderID = TripOrders.OrderID
 JOIN TripParticipants on TripOrders.TripOrderID = TripParticipants.TripOrderID
-JOIN Participants on TripParticipants.ParticipantID = Participants.ParticipantID;
+JOIN Participants on TripParticipants.ParticipantID = Participants.ParticipantID
 ```
 
-| CustomerID | ParticipantID | OrderID | TripOrderID | OrderDate               |
-| :--------- | :------------ | :------ | :---------- | :---------------------- |
-| 1          | 1             | 1       | 1           | 2024-05-01 00:00:00.000 |
-| 1          | 2             | 1       | 1           | 2024-05-01 00:00:00.000 |
-| 2          | 3             | 2       | 2           | 2024-05-02 00:00:00.000 |
-| 2          | 4             | 2       | 2           | 2024-05-02 00:00:00.000 |
-| 3          | 5             | 3       | 3           | 2024-05-03 00:00:00.000 |
-| 4          | 6             | 4       | 4           | 2024-05-04 00:00:00.000 |
-| 5          | 7             | 5       | 5           | 2024-05-05 00:00:00.000 |
-| 6          | 8             | 6       | 6           | 2024-05-06 00:00:00.000 |
-| 7          | 9             | 7       | 7           | 2024-05-07 00:00:00.000 |
-| 8          | 10            | 8       | 8           | 2024-05-08 00:00:00.000 |
-| 9          | 11            | 9       | 9           | 2024-05-09 00:00:00.000 |
-| 10         | 12            | 10      | 10          | 2024-05-10 00:00:00.000 |
+| CustomerID | CustomerFirstName | CustomerLastName | CustomerPhone | ParticipantID | ParticipantFirstName | ParticipantLastName | ParticipantPhone | OrderID | TripOrderID | TripName | OrderDate |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Marek | Xardas | +4915791234567 | 1 | Walter | White | +43123456789 | 1 | 1 | Vienna City Tour | 2024-05-01 00:00:00.000 |
+| 1 | Marek | Xardas | +4915791234567 | 2 | Jesse | Pinkman | +420987654321 | 1 | 1 | Vienna City Tour | 2024-05-01 00:00:00.000 |
+| 2 | Lester | Goodman | +442071234567 | 3 | Skyler | White | +33192837465 | 2 | 2 | Prague Historic Walk | 2024-05-02 00:00:00.000 |
+| 2 | Lester | Goodman | +442071234567 | 4 | Hank | Schrader | +49308475645 | 2 | 2 | Prague Historic Walk | 2024-05-02 00:00:00.000 |
+| 3 | Lares | Rebel | +34911234567 | 5 | Marie | Schrader | +30213647382 | 3 | 3 | Paris Museum Excursion | 2024-05-03 00:00:00.000 |
+| 4 | Diego | de la Vega | +390612345678 | 6 | Saul | Goodman | +353384756192 | 4 | 4 | Berlin Wall Experience | 2024-05-04 00:00:00.000 |
+| 5 | Milten | Stormeye | +33123456789 | 7 | Gus | Fring | +39074619283 | 5 | 5 | Athens Ancient Sites | 2024-05-05 00:00:00.000 |
+| 6 | Gorn | Kagan | +48123456789 | 8 | Mike | Ehrmantraut | +813927364518 | 6 | 6 | Dublin Literary Tour | 2024-05-06 00:00:00.000 |
+| 7 | Lester | de Varel | +302103456789 | 9 | Tuco | Salamanca | +48192736451 | 7 | 7 | Rome Culinary Adventure | 2024-05-07 00:00:00.000 |
+| 8 | Thorus | Ironfist | +6623456789 | 10 | Hector | Salamanca | +34638472819 | 8 | 8 | Barcelona Art Journey | 2024-05-08 00:00:00.000 |
+| 9 | Baal | Lukor | +420234567890 | 11 | Walter Jr. | White | +441234567890 | 9 | 9 | Barcelona Art Journey | 2024-05-09 00:00:00.000 |
+| 10 | Corristo | Guillame | +431234567890 | 12 | Gale | Boetticher | +12128675309 | 10 | 10 | Barcelona Art Journey | 2024-05-10 00:00:00.000 |
+| 2 | Lester | Goodman | +442071234567 | 1 | Walter | White | +43123456789 | 11 | 12 | Barcelona Art Journey | 2024-06-10 21:23:26.360 |
 
 ### Procedury
 
@@ -588,16 +581,17 @@ Nazwa procedury: **AllUnpaidByCustomer**
 ```sql
 CREATE PROCEDURE AllUnpaidByCustomer @CustomerID int
 AS
-SELECT OrderID, LeftToPay
+SELECT CustomerID, FirstName, LastName, Phone, OrderID, LeftToPay
 FROM UnpaidOrders
-WHERE CustomerID = @CustomerID
+WHERE CustomerID = @CustomerID;
 ```
 
 Dla _CustomerID_ równego 1:
 
-| OrderID | LeftToPay |
-| :------ | :-------- |
-| 1       | 700.0000  |
+| CustomerID | FirstName | LastName | Phone | OrderID | LeftToPay |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Marek | Xardas | +4915791234567 | 1 | 3100.0000 |
+
 
 Nazwa procedury: **ListOrderParticipants**
 
@@ -606,17 +600,17 @@ Nazwa procedury: **ListOrderParticipants**
 ```sql
 CREATE PROCEDURE ListOrderParticipants @OrderID int
 AS
-SELECT OrderID, TripOrderID, ParticipantID
+SELECT OrderID, OrderDate, ParticipantID, ParticipantFirstName, ParticipantLastName, ParticipantPhone
 FROM CustomerParticipantList
-WHERE OrderID = @OrderID;
+WHERE OrderID = 1;
 ```
 
 Dla _OrderID_ równego 1:
 
-| OrderID | ParticipantID |
-| :------ | :------------ |
-| 1       | 1             |
-| 1       | 2             |
+| OrderID | OrderDate | ParticipantID | ParticipantFirstName | ParticipantLastName | ParticipantPhone |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 2024-05-01 00:00:00.000 | 1 | Walter | White | +43123456789 |
+| 1 | 2024-05-01 00:00:00.000 | 2 | Jesse | Pinkman | +420987654321 |
 
 Nazwa procedury: **ListTripOrderParticipants**
 
@@ -625,36 +619,38 @@ Nazwa procedury: **ListTripOrderParticipants**
 ```sql
 CREATE PROCEDURE ListTripOrderParticipants @TripOrderID int
 AS
-SELECT TripOrderID, ParticipantID
+SELECT OrderID, OrderDate, TripOrderID, TripName, ParticipantID, ParticipantFirstName, ParticipantLastName, ParticipantPhone
 FROM CustomerParticipantList
 WHERE TripOrderID = @TripOrderID;
 ```
 
 Dla _TripOrderID_ równego 1:
 
-| TripOrderID | ParticipantID |
-| :---------- | :------------ |
-| 1           | 1             |
-| 1           | 2             |
+| OrderID | OrderDate | TripOrderID | TripName | ParticipantID | ParticipantFirstName | ParticipantLastName | ParticipantPhone |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 2024-05-01 00:00:00.000 | 1 | Vienna City Tour | 1 | Walter | White | +43123456789 |
+| 1 | 2024-05-01 00:00:00.000 | 1 | Vienna City Tour | 2 | Jesse | Pinkman | +420987654321 |
 
-Nazwa procedury: **ListAttractionParticipants**
+Nazwa procedury: **ListAttractionOrderParticipants**
 
 - Opis: Wylistowuje dane wszystkich uczestników, którzy są zapisani do konkretnego zamówienia atrakcji.
 
 ```sql
-CREATE PROCEDURE ListAttractionParticipants @AttractionOrderID int
+CREATE PROCEDURE ListAttractionOrderParticipants @AttractionOrderID int
 AS
-SELECT AttractionOrders.AttractionOrderID, ParticipantID
+SELECT OrderID, OrderDate, AttractionOrders.AttractionOrderID, AttractionName, Participants.ParticipantID, FirstName, LastName, Phone
 FROM AttractionOrders
 JOIN AttractionParticipants ON AttractionOrders.AttractionOrderID = AttractionParticipants.AttractionOrderID
-WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID;
+JOIN Attractions ON AttractionOrders.AttractionID = Attractions.AttractionID
+JOIN Participants ON AttractionParticipants.ParticipantID = Participants.ParticipantID
+WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID int;
 ```
 
 Dla _AttractionOrderID_ równego 1:
 
-| AttractionOrderID | ParticipantID |
-| :---------------- | :------------ |
-| 1                 | 8             |
+| OrderID | OrderDate | AttractionOrderID | AttractionName | ParticipantID | FirstName | LastName | Phone |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 6 | 2024-05-13 00:00:00.000 | 1 | Trinity College Library | 8 | Mike | Ehrmantraut | +813927364518 |
 
 Nazwa procedury: **TripsWithXSlotsLeft**
 
@@ -694,7 +690,8 @@ CREATE PROCEDURE TripsTo @Country varchar(30)
 AS
 SELECT TripID, TripName, StartDate, EndDate
 FROM Trips
-WHERE DestinationCountry = @Country;
+WHERE IsAvailable = 1
+  AND DestinationCountry = @Country;
 ```
 
 Dla _Country_ równego 'Poland':
