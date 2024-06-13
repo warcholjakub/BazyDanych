@@ -227,7 +227,7 @@ Nazwa tabeli: **TripParticipants**
 
 ```sql
 CREATE TABLE TripParticipants (
-    TripOrderID int  IDENTITY NOT NULL,
+    TripOrderID int  NOT NULL,
     ParticipantID int  NOT NULL,
     CONSTRAINT TripParticipants_pk PRIMARY KEY  (TripOrderID,ParticipantID)
 );
@@ -291,7 +291,7 @@ Nazwa tabeli: **AttractionParticipants**
 
 ```sql
 CREATE TABLE AttractionParticipants (
-    AttractionOrderID int  IDENTITY NOT NULL,
+    AttractionOrderID int  NOT NULL,
     ParticipantID int  NOT NULL,
     CONSTRAINT AttractionParticipants_pk PRIMARY KEY  (AttractionOrderID,ParticipantID)
 );
