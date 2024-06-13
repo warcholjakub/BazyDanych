@@ -60,7 +60,7 @@ Nazwa tabeli: **Trips**
 | DestinationCountry   | varchar(30) | Kraj, do którego jest wycieczka (**FK**)                                          |
 | StartDate            | date        | Początek wycieczki; **StartDate < EndDate** - data początku jest przed datą końca |
 | EndDate              | date        | Koniec wycieczki                                                                  |
-| MaxParticipantsCount | smallint    | Maksymalna liczba osób, które mogą uczestniczyć; **MaxParticipantsCount > 0**     |
+| MaxParticipantsCount | int    | Maksymalna liczba osób, które mogą uczestniczyć; **MaxParticipantsCount > 0**     |
 | Price                | money       | Koszt wycieczki; **Price >= 0**                                                   |
 | IsAvailable          | bit         | Czy wycieczka jest dostępna do zamówienia (0 - nie, 1 - tak); **DEFAULT - 0**     |
 
@@ -107,7 +107,7 @@ CREATE TABLE Attractions (
     AttractionID int  IDENTITY NOT NULL,
     TripID int  NOT NULL,
     AttractionName varchar(90)  NOT NULL,
-    MaxParticipantsCount smallint  NOT NULL,
+    MaxParticipantsCount int  NOT NULL,
     Price money  NOT NULL,
     CONSTRAINT Attractions_PriceCheck CHECK (Price >= 0),
     CONSTRAINT Attractions_MPCheck CHECK (MaxParticipantsCount > 0),
