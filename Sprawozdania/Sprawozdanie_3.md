@@ -804,18 +804,18 @@ BEGIN
     IF ((SELECT COUNT(*) AS cnt FROM CustomerParticipantList WHERE TripOrderID = @TripOrderID)
         >= (SELECT ParticipantsCount FROM TripOrders WHERE TripOrderID = @TripOrderID))
     BEGIN
-        THROW 5001, 'There is not enough free slots in this trip order.', 1
+        THROW 50001, 'There is not enough free slots in this trip order.', 1
     END
 
     IF (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = (SELECT TripID FROM TripOrders WHERE TripOrderID = @TripOrderID)))
         < GETDATE())
     BEGIN
-        THROW 5001, 'Associating participants with this trip order is locked.', 1
+        THROW 50001, 'Associating participants with this trip order is locked.', 1
     END
 
     IF (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
     BEGIN
-        THROW 5001, 'There is no such participant.', 1
+        THROW 50001, 'There is no such participant.', 1
     END
 
     INSERT INTO TripParticipants(TripOrderID, ParticipantID)
@@ -838,19 +838,19 @@ BEGIN
         WHERE AttractionOrders.AttractionOrderID = @AttractionOrderID)
         >= (SELECT ParticipantsCount FROM AttractionOrders WHERE AttractionOrderID = @AttractionOrderID))
     BEGIN
-        THROW 5001, 'There is not enough free slots in this trip order.', 1
+        THROW 50001, 'There is not enough free slots in this trip order.', 1
     END
 
     IF ((DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID =
         (SELECT TripID FROM AttractionOrders JOIN Attractions ON Attractions.AttractionID = AttractionOrders.AttractionID
         WHERE AttractionOrderID = @AttractionOrderID))) < GETDATE()))
     BEGIN
-        THROW 5001, 'Associating participants with this attraction order is locked.', 1
+        THROW 50001, 'Associating participants with this attraction order is locked.', 1
     END
 
     IF (@ParticipantID NOT IN (SELECT ParticipantID FROM Participants))
     BEGIN
-        THROW 5001, 'There is no such participant.', 1
+        THROW 50001, 'There is no such participant.', 1
     END
 
     INSERT INTO AttractionParticipants(AttractionOrderID, ParticipantID)
@@ -869,7 +869,7 @@ AS
 BEGIN
     IF (@OrderID NOT IN (SELECT OrderID FROM Orders))
     BEGIN
-        THROW 5001, 'There is no such order.', 1
+        THROW 50001, 'There is no such order.', 1
     END
 
     UPDATE Orders
@@ -917,7 +917,6 @@ Nazwa triggera: **ParticipantTripAssociationCheck**
 CREATE TRIGGER ParticipantTripAssociationCheck
     ON AttractionParticipants
     AFTER INSERT, UPDATE
-    FOR EACH ROW
 AS
 BEGIN
     IF NOT EXISTS(SELECT 1
