@@ -731,11 +731,15 @@ END
             INSERT INTO Orders(OrderDate, CustomerID, IsCancelled)
             VALUES
                 (GETDATE(), @CustomerID, 0)
-
-        INSERT INTO TripOrders(TripID, OrderDate, ParticipantsCount, Price)
-        VALUES
-            (@TripID, GETDATE(), @ParticipantsCount,
-            CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
+            INSERT INTO TripOrders(TripID, OrderID, OrderDate, ParticipantsCount, Price)
+            VALUES
+                (@TripID, (SELECT MAX(OrderID) FROM Orders), GETDATE(), @ParticipantsCount,
+                CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
+        ELSE
+            INSERT INTO TripOrders(TripID, OrderID, OrderDate, ParticipantsCount, Price)
+            VALUES
+                (@TripID, @OrderID, GETDATE(), @ParticipantsCount,
+                CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
     COMMIT
 
 END TRY
