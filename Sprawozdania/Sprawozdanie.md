@@ -970,3 +970,31 @@ CREATE ROLE DefaultUser
 GRANT SELECT ON dbo.Trips TO DefaultUser
 GRANT SELECT ON dbo.Attractions TO DefaultUser
 ```
+
+Nazwa roli: **TripManager**
+
+- Opis: Rola, która jest nadawana osobom zarządzającym wycieczkami.
+
+```sql
+CREATE ROLE TripManager
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.Trips TO TripManager;
+GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.Attractions TO TripManager;
+GRANT SELECT ON dbo.TripOrders TO TripManager;
+GRANT SELECT ON dbo.AttractionOrders TO TripManager;
+```
+
+Nazwa roli: **FinancialManager**
+
+- Opis: Rola, która jest nadawana osobom zarządzającym finansami.
+
+```sql
+CREATE ROLE FinancialManager
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.Payments TO FinancialManager;
+GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.Orders TO FinancialManager;
+
+GRANT SELECT ON dbo.TripOrders TO FinancialManager;
+GRANT SELECT ON dbo.AttractionOrders TO FinancialManager;
+GRANT SELECT ON dbo.Customers TO FinancialManager;
+```
