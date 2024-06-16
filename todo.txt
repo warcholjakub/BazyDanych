@@ -1,0 +1,6 @@
+- Pomyśleć nad sensem i celem widoków.
+- Zrobić tak żeby nie było samych numerków, tylko faktycznie znaczące dane.
+- Rozbudować ify w celu konkretniejszych błędów.
+- Wsadzić w funkcje powtarzający się kod.
+- Naprawić to, gdzie są dwa inserty. Rollback w razie błędu.
+- Przykłady pozwalające zaprezentować działanie procedur itd.
