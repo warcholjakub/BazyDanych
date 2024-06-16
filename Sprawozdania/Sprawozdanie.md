@@ -869,7 +869,7 @@ BEGIN
     END
 
     UPDATE Orders
-    SET Cancelled = 1
+    SET IsCancelled = 1
     WHERE OrderID = @OrderID
 END;
 ```
