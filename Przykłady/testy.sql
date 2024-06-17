@@ -115,3 +115,22 @@
 
     -- Normalnie się da
     EXEC AssociateParticipantWithAttraction 1, 4
+
+-- ### CancelOrder
+
+    EXEC CancelOrder 23
+
+    SELECT * FROM Orders
+    WHERE OrderID = 23
+
+-- ### ChangeAvailability
+
+    EXEC ChangeAvailability 1, 0
+
+    SELECT * FROM Trips WHERE TripID = 1
+
+    EXEC ChangeAvailability 1, 1
+
+-- ### AddParticipant
+
+    EXEC AddParticipant 'Jan', 'Kowalski', '12345', 'Krakow', 'Polska', 'postal', '883111111' 
