@@ -16,19 +16,19 @@
 
 -- ### Payments
 
-    INSERT INTO Payments (PaymentID, OrderID, PaymentDate, Amount, PaymentMethod)
-         VALUES (4, 1, N'2024-05-29 13:29:08.000', 250.0000, N'Unsupported payment method')
+    INSERT INTO Payments (OrderID, PaymentDate, Amount, PaymentMethod)
+         VALUES (1, N'2024-05-29 13:29:08.000', 250.0000, N'Unsupported payment method')
     
-    INSERT INTO Payments (PaymentID, OrderID, PaymentDate, Amount, PaymentMethod)
-         VALUES (4, 1, N'2024-05-29 13:29:08.000', -250.0000, N'Card')
+    INSERT INTO Payments (OrderID, PaymentDate, Amount, PaymentMethod)
+         VALUES (1, N'2024-05-29 13:29:08.000', -250.0000, N'Card')
 
 -- ### Trips
 
-    INSERT INTO Trips (TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price)
-         VALUES (14, 1, 'City', 'Nonexistent country', N'2024-12-20', N'2024-12-27', 10, 300)
+    INSERT INTO Trips (TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price)
+         VALUES ('test', 'City', 'Nonexistent country', N'2024-12-20', N'2024-12-27', 10, 300)
     
-    INSERT INTO Trips (TripID, TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price)
-         VALUES (14, 1, 'Warsaw', 'Poland', N'2024-12-27', N'2024-12-20', 10, 300)
+    INSERT INTO Trips (TripName, DestinationCity, DestinationCountry, StartDate, EndDate, MaxParticipantsCount, Price)
+         VALUES ('test', 'Warsaw', 'Poland', N'2024-12-27', N'2024-12-20', 10, 300)
 
 -- ### BuyTrip
 
@@ -36,15 +36,15 @@
     EXEC BuyTrip 1,1,1,1
 
     -- Nieistniejący OrderID (utworzy nowy Order)
-    EXEC BuyTrip 15, 10, 5, 3
+    EXEC BuyTrip 25, 10, 5, 3
 
     SELECT *
     FROM Orders
-    WHERE OrderID = 15
+    WHERE OrderID = 25
 
     SELECT TripID
     FROM TripOrders
-    WHERE OrderID = 15
+    WHERE OrderID = 25
 
     -- Za duży ParticipantsCount
     EXEC BuyTrip 15, 10, 3000, 3
@@ -56,17 +56,20 @@
     EXEC BuyTrip 15, 13, 5, 3
 
     -- Brak miejsc
-    EXEC BuyTrip 15, 5, 5, 3
+    EXEC BuyTrip 15, 5, 100, 3
 
 -- ### BuyAttraction
 
     -- Brak miejsc
-    EXEC BuyAttraction 5, 13, 3
+    EXEC BuyAttraction 5, 13, 30
 
     -- Za duży ParticipantsCount
     EXEC BuyAttraction 6, 16, 3000
 
     -- Brak wykupionej odpowiedniej wycieczki (trigger AttractionOrderCheck)
+    EXEC BuyAttraction 12, 4, 3
+
+    -- Powiązana wycieczka jest niedostępna
     EXEC BuyAttraction 12, 1, 3
 
     -- Poprawne zamówienie
@@ -82,16 +85,16 @@
     JOIN Trips ON TripOrders.TripID = Trips.TripID
 
     -- Nie da się bo taki uczestnik nie istnieje
-    EXEC AssociateParticipantWithTrip 40, 1
+    EXEC AssociateParticipantWithTrip 40, 24
 
     -- Nie da się bo taki uczestnik już uczestniczy
-    EXEC AssociateParticipantWithTrip 1, 12
+    EXEC AssociateParticipantWithTrip 1, 24
 
     -- Nie da się bo już jest maksymalna liczba uczestników
-    EXEC AssociateParticipantWithTrip 1, 1
+    EXEC AssociateParticipantWithTrip 1, 13
 
     -- Normalnie się da
-    EXEC AssociateParticipantWithTrip 2, 12
+    EXEC AssociateParticipantWithTrip 10, 22
 
 -- ### AssociateParticipantWithAttraction
 
@@ -99,16 +102,16 @@
     EXEC AssociateParticipantWithAttraction 1, 1
 
     -- Nie da się bo taki uczestnik nie istnieje
-    EXEC AssociateParticipantWithAttraction 40, 1
+    EXEC AssociateParticipantWithAttraction 40, 9
 
     -- Nie da się bo taki uczestnik już uczestniczy
-    EXEC AssociateParticipantWithAttraction 8, 1
+    EXEC AssociateParticipantWithAttraction 7, 9
 
     -- Uczestnik nie uczestniczy w głównej wycieczce (trigger ParticipantTripAssociationCheck)
-    EXEC AssociateParticipantWithAttraction 8, 3
+    EXEC AssociateParticipantWithAttraction 1, 9
 
     -- Nie da się bo już jest maksymalna liczba uczestników
-    EXEC AssociateParticipantWithAttraction 1, 1
+    EXEC AssociateParticipantWithAttraction 1, 2
 
     -- Normalnie się da
     EXEC AssociateParticipantWithAttraction 1, 4

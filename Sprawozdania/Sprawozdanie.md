@@ -705,11 +705,11 @@ Nazwa procedury: **BuyTrip**
 CREATE PROCEDURE BuyTrip @OrderID int, @TripID int, @ParticipantsCount int, @CustomerID int
 AS
 BEGIN TRY
-IF ((SELECT SlotsLeft FROM TripParticipantsCount
-WHERE TripID = @TripID) < @ParticipantsCount)
-BEGIN
-THROW 50001, 'There is not enough free slots for this trip.', 1
-END
+    IF ((SELECT SlotsLeft FROM TripParticipantsCount
+    WHERE TripID = @TripID) < @ParticipantsCount)
+    BEGIN
+    THROW 50001, 'There is not enough free slots for this trip.', 1
+    END
 
     IF (DATEADD(day, -7, (SELECT StartDate FROM Trips WHERE TripID = @TripID)) < GETDATE())
     BEGIN
@@ -728,6 +728,7 @@ END
 
     BEGIN TRANSACTION
         IF (@OrderID NOT IN (SELECT OrderID FROM Orders))
+            BEGIN
             INSERT INTO Orders(OrderDate, CustomerID, IsCancelled)
             VALUES
                 (GETDATE(), @CustomerID, 0)
@@ -735,11 +736,14 @@ END
             VALUES
                 (@TripID, (SELECT MAX(OrderID) FROM Orders), GETDATE(), @ParticipantsCount,
                 CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
+            END
         ELSE
+            BEGIN
             INSERT INTO TripOrders(TripID, OrderID, OrderDate, ParticipantsCount, Price)
             VALUES
                 (@TripID, @OrderID, GETDATE(), @ParticipantsCount,
                 CAST((SELECT Price * @ParticipantsCount FROM Trips WHERE TripID = @TripID) as money))
+            END
     COMMIT
 
 END TRY
