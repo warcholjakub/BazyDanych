@@ -599,7 +599,7 @@ CREATE PROCEDURE ListOrderParticipants @OrderID int
 AS
 SELECT OrderID, OrderDate, ParticipantID, ParticipantFirstName, ParticipantLastName, ParticipantPhone
 FROM CustomerParticipantList
-WHERE OrderID = 1;
+WHERE OrderID = @OrderID;
 ```
 
 Dla _OrderID_ równego 1:
